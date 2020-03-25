@@ -122,6 +122,18 @@ class TransferAccount(OneOrgBase, ModelBase):
         )
 
     @hybrid_property
+    def total_sent_monthly(self):
+        from datetime import datetime
+        from datetime import timedelta
+        one_month_ago = (datetime.now() - timedelta(weeks=4))
+        return int(
+            db.session.query(func.sum(server.models.credit_transfer.CreditTransfer.transfer_amount).label('total')).execution_options(show_all=True)
+            .filter(server.models.credit_transfer.CreditTransfer.transfer_status == TransferStatusEnum.COMPLETE)
+            .filter(server.models.credit_transfer.CreditTransfer.created > one_month_ago)
+            .filter(server.models.credit_transfer.CreditTransfer.sender_transfer_account_id == self.id).first().total or 0
+        )
+
+    @hybrid_property
     def primary_user(self):
         if len(self.users) == 0:
             return None

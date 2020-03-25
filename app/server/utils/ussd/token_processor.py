@@ -118,8 +118,20 @@ class TokenProcessor(object):
 
     @staticmethod
     def get_default_exchange_limit(limit: TransferLimit, user: Optional[User]):
-        if limit is not None and limit.transfer_balance_fraction is not None:
+        if limit is not None and limit.transfer_balance_fraction is not None and not user.has_group_account_role:
             return limit.transfer_balance_fraction * TokenProcessor.get_balance(user)
+        elif limit is not None and limit.transfer_balance_fraction is not None and user.has_group_account_role:
+            # get silk transfer account
+            silk_account = default_transfer_account(user)
+
+            # get exchange default limit
+            default_limit = (limit.transfer_balance_fraction * TokenProcessor.get_balance(user))
+
+            # get total monthly outward volume
+            total_monthly_outward_volume = silk_account.total_sent_monthly
+
+            return min(default_limit, total_monthly_outward_volume)
+
         elif limit.total_amount is not None:
             return limit.total_amount
         else:
