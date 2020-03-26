@@ -3,26 +3,45 @@ import sys
 
 from datetime import datetime
 from datetime import timedelta
-from app.server.utils.credit_transfer import make_payment_transfer
-from app.server.utils.transfer_enums import TransferSubTypeEnum
+from flask import g
+from logging import Logger
 
-app_directory = os.path.abspath(os.path.join(os.getcwd(), "../../app"))
-sys.path.append(app_directory)
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), "../app"))
+sys.path.append(parent_dir)
 sys.path.append(os.getcwd())
 
-from app.server import  db
-from app.server.models.user import User
+from server import create_app, db
+from server.models.user import User
+from server.utils.credit_transfer import make_payment_transfer
+from server.utils.transfer_enums import TransferSubTypeEnum
 
 
-def total_unique_outward_transactions_per_user_sets():
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if user:
+        return user
+    raise Exception('User with id {} not found'.format(user_id))
+
+
+def get_list_of_users_with_total_unique_outward_transactions():
     """"
     This method queries the database for all unique outward transactions for each user and returns a list of tuples
-    with a user id, their blockchain address and their total unique outward transactions.
-    [(user_id, blockchain_address, total_unique_outward_transactions)]
+    with a user id and the user's total unique outward transactions.
+    [(user_id, user_total_unique_outward_transactions)]
+    Once the list of tuples as described above is obtained, the function computes the collective unique outward
+    transactions value by iterating through the list.
+    The function then finds a user corresponding to a user id in each tuple and replaces the user id value in the
+    tuple with a user object.
+
+    returns [(user, user_total_unique_outward_transactions)]
+    """
+
+    """
+    Define SQL query with the following search criteria:
     SEARCH CRITERIA
-        - count unique recipient user id.
-        - transfer amount is greater or equal to 20.
-        - credit transfers add since 24hrs ago.
+        - count unique recipient user ids.
+        - credit transfer amount is greater or equal to 20wei.
+        - credit transfer occurs since 24hrs ago.
         - credit transfer status is COMPLETE
         - transfer subtype STANDARD
     """
@@ -37,26 +56,32 @@ def total_unique_outward_transactions_per_user_sets():
     AND credit_transfer.transfer_status = 'COMPLETE'
     AND credit_transfer.transfer_subtype = 'STANDARD'
     GROUP BY 
-    credit_transfer.sender_user_id;'''.format((datetime.now() - timedelta(hours=24)))
+    credit_transfer.sender_user_id'''.format((datetime.now() - timedelta(hours=24)))
 
+    # execute query
     result = db.session.execute(sql_query)
-    unique_transaction_sets = result.fetchall()
 
-    return unique_transaction_sets
+    # get list of tuples with user ids and corresponding total unique outward transactions
+    user_ids_with_total_unique_outward_transactions = result.fetchall()
 
+    # initialize collective unique transactions value at zero
+    collective_unique_outward_transactions = 0
 
-# define sets with total unique transactions per user
-UNIQUE_TRANSACTION_SETS = total_unique_outward_transactions_per_user_sets()
+    # initialize an empty list to store user objects with corresponding total unique outward transactions
+    user_and_total_unique_outward_transactions_list = []
 
-
-def total_user_unique_outward_transactions():
-    # compute total unique outward transactions for each user
-    total_unique_outward_transactions = 0
     for counter, (user_id,
-                  unique_outward_transactions_per_user) in enumerate(UNIQUE_TRANSACTION_SETS):
-        total_unique_outward_transactions += unique_outward_transactions_per_user
+                  user_total_unique_outward_transactions) in enumerate(user_ids_with_total_unique_outward_transactions):
+        # compute total unique outward transactions for all users
+        collective_unique_outward_transactions += user_total_unique_outward_transactions
 
-    return total_unique_outward_transactions
+        # find user by user id
+        user = get_user_by_id(user_id)
+
+        # add tuple of user and corresponding total unique outward transaction to list
+        user_and_total_unique_outward_transactions_list.append((user, user_total_unique_outward_transactions))
+
+    return user_and_total_unique_outward_transactions_list, collective_unique_outward_transactions
 
 
 class BonusProcessor:
@@ -68,28 +93,49 @@ class BonusProcessor:
     def __init__(self, issuable_amount):
         self.issuable_amount = issuable_amount
 
-    def auto_disburse_daily_bonus(self):
-        total_outward_transactions = total_user_unique_outward_transactions()
+    def auto_disburse_amount(self):
+        # provide flask context within which SQL queries can be executed.
+        app = create_app()
+        app_context = app.app_context()
+        app_context.push()
 
-        for counter, (user_id,
-                      unique_outward_transactions_per_user) in enumerate(UNIQUE_TRANSACTION_SETS):
+        # set flask context to show all model data for easier querying using flask models.
+        g.show_all = True
 
-            # compute percentage as per user
+        # get list user objects with corresponding total unique outward transactions and collective unique outward
+        # transactions
+        user_and_total_unique_outward_transactions_list, collective_unique_outward_transactions \
+            = get_list_of_users_with_total_unique_outward_transactions()
+
+        # iterate through list to make disbursements
+        for counter, \
+            (user,
+             unique_outward_transactions_per_user) in enumerate(user_and_total_unique_outward_transactions_list):
+            # compute user's total unique outward transactions as a percentage of the collective unique outward
+            # transactions
             user_percentage_unique_outward_transactions = (
-                (unique_outward_transactions_per_user/total_outward_transactions))
+                (unique_outward_transactions_per_user / collective_unique_outward_transactions))
 
-            print('UNIQUE_TX_PER_USR: {}. TOTAL_OUTWARD_TX: {}. USR_PERCENTAGE_TX: {}.'
-                  .format(unique_outward_transactions_per_user,
-                          total_outward_transactions,
-                          user_percentage_unique_outward_transactions))
+            # get user's share of the total issuable amount
+            user_bonus_amount = int(user_percentage_unique_outward_transactions * self.issuable_amount)
 
-            bonus_amount = user_percentage_unique_outward_transactions * self.issuable_amount
+            # define logger
+            print('USER: {} {}, '
+                  'USER_TOTAL_UNIQUE_OUTWARD_TX: {}, '
+                  'USER_PERCENTAGE_UNIQUE_OUTWARD_TX: {}, '
+                  'USER_BONUS_AMOUNT: {} '.format(user.first_name,
+                                                  user.last_name,
+                                                  unique_outward_transactions_per_user,
+                                                  user_percentage_unique_outward_transactions,
+                                                  user_bonus_amount))
 
-            # TODO [Philip]: Find a way to avoid this query
-            user = User.query.filter_by(id=user_id).first()
+            if user_bonus_amount > 1:
+                # TODO[Philip]: Results in a synchronous subtask 
+                make_payment_transfer(user_bonus_amount,
+                                      receive_user=user,
+                                      transfer_subtype=TransferSubTypeEnum.DISBURSEMENT)
 
-            if bonus_amount > 1 and user:
-                disbursement = make_payment_transfer(bonus_amount,
-                                                     receive_user=user,
-                                                     transfer_subtype=TransferSubTypeEnum.DISBURSEMENT)
-                return disbursement
+                db.session.commit()
+
+        # pop flask application context
+        app_context.pop()
