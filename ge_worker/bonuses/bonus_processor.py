@@ -1,10 +1,10 @@
 import os
 import sys
 
+from celery.utils.log import get_task_logger
 from datetime import datetime
 from datetime import timedelta
 from flask import g
-from logging import Logger
 
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), "../app"))
 sys.path.append(parent_dir)
@@ -15,6 +15,8 @@ from server.models.user import User
 from server.utils.credit_transfer import make_payment_transfer
 from server.utils.transfer_enums import TransferSubTypeEnum
 
+logger = get_task_logger(__name__)
+
 
 def get_user_by_id(user_id):
     user = User.query.get(user_id)
@@ -23,7 +25,8 @@ def get_user_by_id(user_id):
     raise Exception('User with id {} not found'.format(user_id))
 
 
-def get_list_of_users_with_total_unique_outward_transactions():
+def get_list_of_users_with_total_unique_outward_transactions(transfer_creation_time: int,
+                                                             transfer_amount: int):
     """"
     This method queries the database for all unique outward transactions for each user and returns a list of tuples
     with a user id and the user's total unique outward transactions.
@@ -35,6 +38,8 @@ def get_list_of_users_with_total_unique_outward_transactions():
 
     returns [(user, user_total_unique_outward_transactions)]
     """
+    transfer_creation_time = (datetime.now() - timedelta(hours=transfer_creation_time))
+    transfer_amount = (transfer_amount*10e17)
 
     """
     Define SQL query with the following search criteria:
@@ -49,14 +54,14 @@ def get_list_of_users_with_total_unique_outward_transactions():
     credit_transfer.sender_user_id,
     COUNT (DISTINCT (credit_transfer.recipient_user_id))
     FROM credit_transfer
-    LEFT JOIN transfer_account 
+    INNER JOIN transfer_account 
     ON credit_transfer.sender_transfer_account_id = transfer_account .id
-    WHERE credit_transfer._transfer_amount_wei >= (2*10e17)
+    WHERE credit_transfer._transfer_amount_wei >= {}
     AND credit_transfer.created > '{}'
     AND credit_transfer.transfer_status = 'COMPLETE'
     AND credit_transfer.transfer_subtype = 'STANDARD'
     GROUP BY 
-    credit_transfer.sender_user_id'''.format((datetime.now() - timedelta(hours=24)))
+    credit_transfer.sender_user_id'''.format(transfer_amount, transfer_creation_time)
 
     # execute query
     result = db.session.execute(sql_query)
@@ -105,7 +110,8 @@ class BonusProcessor:
         # get list user objects with corresponding total unique outward transactions and collective unique outward
         # transactions
         user_and_total_unique_outward_transactions_list, collective_unique_outward_transactions \
-            = get_list_of_users_with_total_unique_outward_transactions()
+            = get_list_of_users_with_total_unique_outward_transactions(transfer_amount=2,
+                                                                       transfer_creation_time=24)
 
         # iterate through list to make disbursements
         for counter, \
@@ -120,14 +126,14 @@ class BonusProcessor:
             user_bonus_amount = int(user_percentage_unique_outward_transactions * self.issuable_amount)
 
             # define logger
-            print('USER: {} {}, '
-                  'USER_TOTAL_UNIQUE_OUTWARD_TX: {}, '
-                  'USER_PERCENTAGE_UNIQUE_OUTWARD_TX: {}, '
-                  'USER_BONUS_AMOUNT: {} '.format(user.first_name,
-                                                  user.last_name,
-                                                  unique_outward_transactions_per_user,
-                                                  user_percentage_unique_outward_transactions,
-                                                  user_bonus_amount))
+            logger.info('USER: {} {}, '
+                        'USER_TOTAL_UNIQUE_OUTWARD_TX: {}, '
+                        'USER_PERCENTAGE_UNIQUE_OUTWARD_TX: {}, '
+                        'USER_BONUS_AMOUNT: {} '.format(user.first_name,
+                                                        user.last_name,
+                                                        unique_outward_transactions_per_user,
+                                                        user_percentage_unique_outward_transactions,
+                                                        user_bonus_amount))
 
             if user_bonus_amount > 1:
                 # TODO[Philip]: Results in a synchronous subtask 
