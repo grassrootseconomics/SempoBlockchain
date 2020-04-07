@@ -4,15 +4,13 @@ import styled from "styled-components";
 import { subscribe, unsubscribe } from "pusher-redux";
 
 import { PUSHER_CREDIT_TRANSFER } from "../../reducers/creditTransferReducer";
-import { logout } from "../../reducers/auth/actions";
-import {
-  loadCreditTransferList,
-  loadCreditTransferStats
-} from "../../reducers/creditTransferReducer";
+import { LoginAction } from "../../reducers/auth/actions";
+import { loadCreditTransferList } from "../../reducers/creditTransferReducer";
 import { loadTransferAccounts } from "../../reducers/transferAccountReducer";
+import { loadCreditTransferFilters } from "../../reducers/creditTransferFilterReducer";
 
 import {
-  AnalyticsChart,
+  VolumeChart,
   BeneficiaryFunnel,
   UsagePieChart,
   MetricsBar,
@@ -28,6 +26,8 @@ import {
 } from "../styledElements";
 import { parseQuery } from "../../utils";
 
+import { ActivateAccountAction } from "../../reducers/auth/actions";
+
 const HeatMap = lazy(() => import("../heatmap/heatmap.jsx"));
 
 const mapStateToProps = state => {
@@ -40,13 +40,15 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    logout: () => dispatch(logout()),
+    logout: () => dispatch(LoginAction.logout()),
     loadTransferAccountList: (query, path) =>
       dispatch(loadTransferAccounts({ query, path })),
     loadCreditTransferList: (query, path) =>
       dispatch(loadCreditTransferList({ query, path })),
-    loadCreditTransferStats: (query, path) =>
-      dispatch(loadCreditTransferStats({ query, path }))
+    loadCreditTransferFilters: (query, path) =>
+      dispatch(loadCreditTransferFilters({ query, path })),
+    activateAccount: payload =>
+      dispatch(ActivateAccountAction.activateAccountRequest(payload))
   };
 };
 
@@ -81,8 +83,10 @@ class DashboardPage extends React.Component {
 
     if (parsed.actok) {
       console.log("actok", parsed.actok);
-      this.props.activateAccount(parsed.actok);
+      this.props.activateAccount({ body: { activation_token: parsed.actok } });
     }
+
+    this.props.loadCreditTransferFilters();
   }
 
   buildFilterForAPI() {
@@ -163,7 +167,7 @@ class DashboardPage extends React.Component {
               <Main>
                 <GraphMetricColumn>
                   <ModuleBox>
-                    <AnalyticsChart />
+                    <VolumeChart />
                   </ModuleBox>
 
                   <ModuleBox>

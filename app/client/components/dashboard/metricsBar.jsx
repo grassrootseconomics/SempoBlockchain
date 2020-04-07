@@ -2,25 +2,26 @@ import React from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
 
-import { logout } from "../../reducers/auth/actions";
+import { LoginAction } from "../../reducers/auth/actions";
 import { ModuleHeader } from "../styledElements";
 
 import { formatMoney } from "../../utils";
 
 const mapStateToProps = state => {
   return {
-    creditTransferStats: state.creditTransfers.transferStats,
-    login: state.login
+    creditTransferStats: state.metrics.metricsState,
+    login: state.login,
+    activeOrganisation: state.organisations.byId[state.login.organisationId]
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    logout: () => dispatch(logout())
+    logout: () => dispatch(LoginAction.logout())
   };
 };
 
-const MetricsBar = ({ creditTransferStats, login }) => {
+const MetricsBar = ({ creditTransferStats, login, activeOrganisation }) => {
   if (Object.keys(creditTransferStats).length === 0) {
     return <p>No Transfer Data</p>;
   }
@@ -35,7 +36,7 @@ const MetricsBar = ({ creditTransferStats, login }) => {
             0,
             undefined,
             undefined,
-            login.organisationToken
+            activeOrganisation.token.symbol
           )}
         </Metric>
       </MetricWrap>
@@ -51,7 +52,7 @@ const MetricsBar = ({ creditTransferStats, login }) => {
             0,
             undefined,
             undefined,
-            login.organisationToken
+            activeOrganisation.token.symbol
           )}
         </Metric>
       </MetricWrap>
@@ -67,7 +68,7 @@ const MetricsBar = ({ creditTransferStats, login }) => {
             0,
             undefined,
             undefined,
-            login.organisationToken
+            activeOrganisation.token.symbol
           )}
         </Metric>
       </MetricWrap>
@@ -83,7 +84,7 @@ const MetricsBar = ({ creditTransferStats, login }) => {
             0,
             undefined,
             undefined,
-            login.organisationToken
+            activeOrganisation.token.symbol
           )}
         </Metric>
       </MetricWrap>

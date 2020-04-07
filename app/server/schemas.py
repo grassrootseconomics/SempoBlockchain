@@ -62,6 +62,8 @@ class UserSchema(SchemaBase):
 
     failed_pin_attempts = fields.Int()
 
+    default_transfer_account_id = fields.Int()
+
     custom_attributes        = fields.Method("get_json_data")
     matched_profile_pictures = fields.Method("get_profile_url")
     referred_by              = fields.Method("get_referrer_phone")
@@ -285,7 +287,8 @@ class TransferAccountSchema(SchemaBase):
             "location",
             "phone",
             "public_serial_number",
-            "custom_attributes"
+            "custom_attributes",
+            "default_transfer_account_id"
         ),
         exclude=(
             'transfer_accounts',
@@ -387,6 +390,13 @@ class KycApplicationSchema(SchemaBase):
 class OrganisationSchema(SchemaBase):
     name                = fields.Str()
     primary_blockchain_address = fields.Str()
+
+    default_lat = fields.Float()
+    default_lng = fields.Float()
+
+    require_transfer_card = fields.Boolean(default=False)
+    default_disbursement = fields.Function(lambda obj: int(obj.default_disbursement))
+    country_code = fields.Function(lambda obj: str(obj.country_code))
 
     token               = fields.Nested('server.schemas.TokenSchema')
 
