@@ -1,6 +1,7 @@
 # https://stackoverflow.com/questions/54617308/pip-install-produces-the-following-error-on-mac-error-command-gcc-failed-wit
 # python3.7 / concurrent / futures/thread.py line 135 was originally self._work_queue = queue.SimpleQueue()
 from celery import Celery
+from celery.schedules import crontab
 import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
 import redis, requests
@@ -61,6 +62,13 @@ celery_app.conf.beat_schedule = {
     },
 }
 
+celery_app.conf.beat_schedule = {
+    "manage_daily_bonuses": {
+        "task": "eth_manager.rewards_celery_tasks.disburse_daily_bonuses",
+        "schedule": crontab(minute="50", hour="23")
+    }
+}
+
 w3 = Web3(HTTPProvider(config.ETH_HTTP_PROVIDER))
 
 red = redis.Redis.from_url(config.REDIS_URL)
@@ -75,6 +83,7 @@ blockchain_processor = TransactionProcessor(
 )
 
 import eth_manager.celery_tasks
+import eth_manager.rewards_celery_tasks
 #
 # blockchain_processor.registry.register_contract(
 #     config.ETH_CONTRACT_ADDRESS,
