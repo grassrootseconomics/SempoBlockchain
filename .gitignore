@@ -25,14 +25,17 @@ app/server/static/javascript/bundle.*
 
 #Config
 /config_files/*
-/test_config_files/*
+!/config_files/public
+!/config_files/templates
+!/config_files/generate_secrets.py
 
 # Misc
 /random_files/
 ngrok
 .ideabackup
 /whatsApp/chromedriver
-/ganacheDB/*
+/ganacheDB/
+Dockerrun.aws.json
 
 /venv/*
 app/server/static/javascript/dist/*

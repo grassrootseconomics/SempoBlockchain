@@ -5,13 +5,15 @@ from sqlalchemy.sql import func
 from flask import current_app, g
 from sqlalchemy.ext.hybrid import hybrid_property
 from server import db, bt
-from server.models.utils import ModelBase, OneOrgBase, user_transfer_account_association_table, get_authorising_user_id
+from server.models.utils import ModelBase, OneOrgBase, user_transfer_account_association_table, \
+    get_authorising_user_id, SoftDelete
 from server.models.user import User
 from server.models.spend_approval import SpendApproval
 from server.models.exchange import ExchangeContract
 from server.models.organisation import Organisation
 import server.models.credit_transfer
 from server.models.blockchain_transaction import BlockchainTransaction
+from server.exceptions import TransferAccountDeletionError, ResourceAlreadyDeletedError
 
 from server.utils.transfer_enums import TransferStatusEnum, TransferSubTypeEnum
 
@@ -23,7 +25,7 @@ class TransferAccountType(enum.Enum):
     CONTRACT        = 'CONTRACT'
 
 
-class TransferAccount(OneOrgBase, ModelBase):
+class TransferAccount(OneOrgBase, ModelBase, SoftDelete):
     __tablename__ = 'transfer_account'
 
     name            = db.Column(db.String())
@@ -70,6 +72,25 @@ class TransferAccount(OneOrgBase, ModelBase):
     spend_approvals_given = db.relationship('SpendApproval', backref='giving_transfer_account',
                                             foreign_keys='SpendApproval.giving_transfer_account_id')
 
+    def delete_transfer_account_from_user(self, user: User):
+        """
+        Soft deletes a Transfer Account if no other users associated to it.
+        """
+        try:
+            if self.balance != 0:
+                raise TransferAccountDeletionError('Balance must be zero to delete')
+            if len(self.users) > 1:
+                # todo(user): deletion of user from account with multiple users - NOT CURRENTLY SUPPORTED
+                raise TransferAccountDeletionError('More than one user attached to transfer account')
+            if self.primary_user == user:
+                timenow = datetime.datetime.utcnow()
+                self.deleted = timenow
+            else:
+                raise TransferAccountDeletionError('Primary user does not match provided user')
+
+        except (ResourceAlreadyDeletedError, TransferAccountDeletionError) as e:
+            raise e
+
     def get_float_transfer_account(self):
         for transfer_account in self.organisation.transfer_accounts:
             if transfer_account.account_type == 'FLOAT':
@@ -88,6 +109,7 @@ class TransferAccount(OneOrgBase, ModelBase):
         # We use cents for historical reasons, and to enable graceful degredation/rounding on
         # hardware that can only handle small ints (like the transfer cards and old android devices)
 
+        # rounded to whole value of balance
         return float((self._balance_wei or 0) / int(1e16))
 
     @balance.setter
@@ -150,6 +172,11 @@ class TransferAccount(OneOrgBase, ModelBase):
     def primary_user_id(self):
         return self.primary_user.id
 
+    # rounded balance
+    @hybrid_property
+    def rounded_account_balance(self):
+        return (self._balance_wei or 0) / int(1e18)
+
     @hybrid_property
     def master_wallet_approval_status(self):
 
@@ -206,11 +233,12 @@ class TransferAccount(OneOrgBase, ModelBase):
                 return approval
         return None
 
-    def approve_and_disburse(self, initial_disbursement=None, auto_resolve=False):
+    def approve_and_disburse(self, initial_disbursement=None):
         from server.utils.access_control import AccessControl
 
+        active_org = getattr(g, 'active_organisation', self.primary_user.default_organisation)
         admin = getattr(g, 'user', None)
-        auto_resolve = initial_disbursement == current_app.config['DEFAULT_INITIAL_DISBURSEMENT']
+        auto_resolve = initial_disbursement == active_org.default_disbursement
 
         if not self.is_approved and admin and AccessControl.has_sufficient_tier(admin.roles, 'ADMIN', 'admin'):
             self.is_approved = True
@@ -235,7 +263,8 @@ class TransferAccount(OneOrgBase, ModelBase):
     def _make_initial_disbursement(self, initial_disbursement, auto_resolve=False):
         from server.utils.credit_transfer import make_payment_transfer
 
-        initial_disbursement = initial_disbursement or current_app.config.get('DEFAULT_INITIAL_DISBURSEMENT', None)
+        active_org = getattr(g, 'active_organisation', Organisation.master_organisation())
+        initial_disbursement = initial_disbursement or active_org.default_disbursement
         if not initial_disbursement:
             return None
 
