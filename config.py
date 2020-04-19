@@ -356,3 +356,5 @@ except KeyError:
 TRANSFERS_CREATED_SINCE = common_secrets_parser['REWARDS'].getint('created_since')
 ISSUABLE_REWARD_AMOUNT = common_secrets_parser['REWARDS'].getint('issuable_amount')
 TRANSFER_AMOUNT_LIMIT = common_secrets_parser['REWARDS'].getint('transfer_amount')
+BEAT_SCHEDULER_HOUR = common_secrets_parser['REWARDS'].get('beat_scheduler_hour')
+BEAT_SCHEDULER_MINUTE = common_secrets_parser['REWARDS'].get('beat_scheduler_minute')

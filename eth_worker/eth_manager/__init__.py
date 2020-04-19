@@ -65,7 +65,8 @@ celery_app.conf.beat_schedule = {
 celery_app.conf.beat_schedule = {
     "manage_daily_bonuses": {
         "task": "eth_manager.rewards_celery_tasks.disburse_daily_bonuses",
-        "schedule": crontab(minute="50", hour="23")
+        "schedule": crontab(minute=config.BEAT_SCHEDULER_MINUTE,
+                            hour=config.BEAT_SCHEDULER_HOUR)
     }
 }
 
