@@ -47,4 +47,4 @@ class DisburseDailyBonusAPI(MethodView):
 rewards_view = DisburseDailyBonusAPI.as_view('rewards_api_view')
 rewards_blueprint.add_url_rule('/rewards/disburse_daily_bonuses/',
                                view_func=rewards_view,
-                               methods=['POST', ])
+                               methods=['POST'])
