@@ -444,8 +444,10 @@ def proccess_create_or_modify_user_request(
                             or attribute_dict.get('payment_card_barcode'))
 
     location = attribute_dict.get('location')  # address location
-    geo_location = attribute_dict.get('geo_location')  # geo location as str of lat, lng
+    lat = attribute_dict.get('latitude')
+    lng = attribute_dict.get('longitude')
 
+    """geo_location = attribute_dict.get('geo_location')  # geo location as str of lat, lng
     if geo_location:
         geo = geo_location.split(' ')
         lat = geo[0]
@@ -453,7 +455,7 @@ def proccess_create_or_modify_user_request(
     else:
         # TODO: Work out how this passed tests when this wasn't definied properly!?!
         lat = None
-        lng = None
+        lng = None"""
 
     use_precreated_pin = attribute_dict.get('use_precreated_pin')
     use_last_4_digits_of_id_as_initial_pin = attribute_dict.get(
@@ -589,6 +591,8 @@ def proccess_create_or_modify_user_request(
                 phone=phone,
                 email=email,
                 location=location,
+                lat=lat,
+                lng=lng,
                 public_serial_number=public_serial_number,
                 use_precreated_pin=use_precreated_pin,
                 existing_transfer_account=existing_transfer_account,

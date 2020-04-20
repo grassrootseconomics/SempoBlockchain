@@ -57,6 +57,8 @@ class SingleUserManagement extends React.Component<Props> {
         public_serial_number: form.publicSerialNumber,
         phone: form.phone,
         location: form.location,
+        latitude: form.latitude,
+        longitude: form.longitude,
         is_vendor:
           form.accountType === TransferAccountTypes.VENDOR ||
           form.accountType === TransferAccountTypes.CASHIER,

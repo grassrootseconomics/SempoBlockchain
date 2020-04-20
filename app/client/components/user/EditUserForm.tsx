@@ -33,6 +33,8 @@ export interface IEditUser {
   bio?: string;
   referredBy?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   businessUsage?: string;
   usageOtherSpecific?: string;
   oneTimeCode: number;
@@ -105,6 +107,8 @@ class EditUserForm extends React.Component<
       publicSerialNumber: selectedUser.public_serial_number,
       phone: selectedUser.phone,
       location: selectedUser.location,
+      latitude: selectedUser.lat,
+      longitude: selectedUser.lng,
       accountType: account_type,
       oneTimeCode: selectedUser.one_time_code,
       failedPinAttempts: selectedUser.failed_pin_attempts,
@@ -316,6 +320,17 @@ class EditUserForm extends React.Component<
                 </SubRow>
                 <SubRow>
                   <InputField name="referredBy" label="Referred By" />
+                </SubRow>
+              </Row>
+              <Row>
+                <SubRow>
+                  <InputField name="location" label="Location" />
+                </SubRow>
+                <SubRow>
+                  <InputField name="latitude" label="Latitude" />
+                </SubRow>
+                <SubRow>
+                  <InputField name="longitude" label="Longitude" />
                 </SubRow>
               </Row>
               <Row>
