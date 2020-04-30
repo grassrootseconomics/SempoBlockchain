@@ -129,6 +129,8 @@ jobs:
       - image: circleci/python:3.6-node
         environment:
           CONTAINER_MODE: TEST
+          RESOURCE_BUCKET: $RESOURCE_BUCKET
+          TEST_BUCKET: $TEST_BUCKET
     steps:
       - checkout
       - setup_remote_docker
