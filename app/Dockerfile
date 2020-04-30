@@ -17,6 +17,7 @@ RUN apt remove --purge -y gcc g++ libffi-dev libstdc++-6-dev python3-dev musl-de
 
 
 COPY ./config.py ./config_files/* /src/
+COPY ./init.py ./src/
 ADD ./app/server /src/server
 ADD ./app/migrations /src/migrations
 ADD ./app/manage.py /src

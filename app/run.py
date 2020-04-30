@@ -6,10 +6,10 @@ parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(parent_dir)
 sys.path.append(os.getcwd())
 
-os.environ["LOCATION"] = "LOCAL"
-
 import init
 init.init()
+
+os.environ["LOCATION"] = "LOCAL"
 
 from server import create_app
 
