@@ -36,9 +36,9 @@ if os.environ.get('LOAD_FROM_S3') is not None:
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
 
-SECRET_BUCKET = os.environ.get("SECRETS_BUCKET", "sarafu-secrets")
-RESOURCE_BUCKET = os.environ.get("RESOURCE_BUCKET", "sarafu-resources")
-TEST_BUCKET = os.environ.get("TEST_BUCKET", "sarafu-tests")
+SECRET_BUCKET = os.environ.get("SECRETS_BUCKET")
+RESOURCE_BUCKET = os.environ.get("RESOURCE_BUCKET")
+TEST_BUCKET = os.environ.get("TEST_BUCKET")
 
 if load_from_s3:
     # Load config from S3 Bucket
