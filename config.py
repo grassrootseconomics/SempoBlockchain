@@ -112,6 +112,9 @@ DEPLOYMENT_NAME = config_parser['APP']['DEPLOYMENT_NAME']
 if ENV_DEPLOYMENT_NAME.lower() != DEPLOYMENT_NAME.lower():
     raise RuntimeError('deployment name in env ({}) does not match that in config ({}), aborting'.format(ENV_DEPLOYMENT_NAME.lower(),
                                                                                             DEPLOYMENT_NAME.lower()))
+
+SYSTEM_LOCALE_PATH = config_parser['SYSTEM'].get('locale_path') or CONFIG_DIR + '/var/lib/locale'
+
 BOUNCER_ENABLED = config_parser['APP'].getboolean('BOUNCER_ENABLED', False)
 IS_TEST = config_parser['APP'].getboolean('IS_TEST', False)
 IS_PRODUCTION = config_parser['APP'].getboolean('IS_PRODUCTION')

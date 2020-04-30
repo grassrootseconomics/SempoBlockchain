@@ -41,11 +41,9 @@ class ProcessKenyaUssd(MethodView):
 
         if config.USSD_VALID_SERVICE_CODE != service_code:
             response = 'END '
-            i18n.set('locale', 'sw')
-            response += i18n.t('ussd.kenya.invalid_service_code', valid_service_code = config.USSD_VALID_SERVICE_CODE)
-            i18n.set('locale', 'en')
+            response += i18n.t('ussd.kenya.invalid_service_code', valid_service_code = config.USSD_VALID_SERVICE_CODE, locale='sw')
             response += "\n"
-            response += i18n.t('ussd.kenya.invalid_service_code', valid_service_code = config.USSD_VALID_SERVICE_CODE)
+            response += i18n.t('ussd.kenya.invalid_service_code', valid_service_code = config.USSD_VALID_SERVICE_CODE, locale='en')
             return make_response(response, 200)
 
         elif phone_number:

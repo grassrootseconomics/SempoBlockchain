@@ -8,6 +8,9 @@ sys.path.append(os.getcwd())
 
 os.environ["LOCATION"] = "LOCAL"
 
+import init
+init.init()
+
 from server import create_app
 
 app = create_app()
