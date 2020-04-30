@@ -36,6 +36,10 @@ if os.environ.get('LOAD_FROM_S3') is not None:
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
 
+SECRET_BUCKET = os.environ.get("SECRETS_BUCKET", "sarafu-secrets")
+RESOURCE_BUCKET = os.environ.get("RESOURCE_BUCKET", "sarafu-resources")
+TEST_BUCKET = os.environ.get("TEST_BUCKET", "sarafu-tests")
+
 if load_from_s3:
     # Load config from S3 Bucket
     if os.environ.get('AWS_ACCESS_KEY_ID'):
@@ -51,7 +55,6 @@ if load_from_s3:
         session = boto3.Session()
     client = session.client('s3')
 
-    SECRET_BUCKET = os.environ.get("SECRETS_BUCKET", "ctp-prod-secrets")
     FORCE_SSL = True
 
     common_obj = client.get_object(Bucket=SECRET_BUCKET, Key=COMMON_FILENAME)
@@ -206,6 +209,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 AWS_SES_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID') or common_secrets_parser['AWS']['ses_key_id']
 AWS_SES_SECRET = os.environ.get('AWS_SECRET_ACCESS_KEY') or common_secrets_parser['AWS']['ses_secret']
+AWS_HAVE_CREDENTIALS = AWS_SES_KEY_ID and AWS_SES_SECRET
 
 if IS_PRODUCTION:
     SENTRY_SERVER_DSN = common_secrets_parser['SENTRY']['server_dsn']
