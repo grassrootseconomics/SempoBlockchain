@@ -10,7 +10,6 @@ import config
 from files.sync import FileSyncer
 from files.s3 import S3
 
-
 def test_files():
     uu = str(uuid.uuid4())
     randomfilename = '/tmp/' + uu + '/foo'
@@ -22,7 +21,12 @@ def test_files():
 def test_s3():
     uu = str(uuid.uuid4())
     randomfilename = '/tmp/' + uu + '/foo'
-    fs = S3('sarafu-tests', randomfilename)
+    fs = S3(
+           'sarafu-tests',
+           randomfilename,
+           key=config.AWS_SES_KEY_ID,
+           secret=config.AWS_SES_SECRET
+           )
     remote_files = ['foo.txt', 'bar.txt']
     r = fs.sync(remote_files)
     for f in remote_files:
