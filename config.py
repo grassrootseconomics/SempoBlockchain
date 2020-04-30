@@ -29,24 +29,12 @@ common_secrets_parser = configparser.ConfigParser()
 config_parser = configparser.ConfigParser()
 secrets_parser = configparser.ConfigParser()
 
+load_from_s3 = False
 if os.environ.get('LOAD_FROM_S3') is not None:
+    logg.debug("ATTEMPT LOAD CONFIG FROM S3")
     load_from_s3 = str(os.environ.get('LOAD_FROM_S3')).lower() in ['1', 'true']
-    if load_from_s3:
-        logg.debug("ATTEMPT LOAD S3 CONFIG (FORCED FROM ENV VAR)")
-    else:
-        logg.debug("ATTEMPT LOAD LOCAL CONFIG (FORCED FROM ENV VAR)")
-
-elif os.environ.get('AWS_ACCESS_KEY_ID'):
-    logg.debug("ATTEMPT LOAD S3 CONFIG (AWS ACCESS KEY FOUND)")
-    load_from_s3 = True
-
-elif os.environ.get('SERVER_HAS_S3_AUTH'):
-    logg.debug("ATTEMPT LOAD S3 CONFIG (SERVER CLAIMS TO HAVE S3 AUTH)")
-    load_from_s3 = True
-
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
-    load_from_s3 = False
 
 if load_from_s3:
     # Load config from S3 Bucket
@@ -216,8 +204,8 @@ logg.info('Eth database URI: ' + CENSORED_ETH_URI)
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-AWS_SES_KEY_ID = common_secrets_parser['AWS']['ses_key_id']
-AWS_SES_SECRET = common_secrets_parser['AWS']['ses_secret']
+AWS_SES_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID') or common_secrets_parser['AWS']['ses_key_id']
+AWS_SES_SECRET = os.environ.get('AWS_SECRET_ACCESS_KEY') or common_secrets_parser['AWS']['ses_secret']
 
 if IS_PRODUCTION:
     SENTRY_SERVER_DSN = common_secrets_parser['SENTRY']['server_dsn']
