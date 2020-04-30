@@ -14,8 +14,7 @@ class FileSyncer:
 
     def sync(self, files: list) -> list:
         updated_files = []
-        if not os.path.exists(self.destination_path):
-            os.mkdir(self.destination_path)
+        os.makedirs(self.destination_path, 0777, exist_ok=True)
         for f in files:
             if self.source_is_newer(f):
                 fo = open(self.destination_path + '/' + f, 'wb')
