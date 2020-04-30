@@ -31,9 +31,8 @@ class S3(FileSyncer):
 
     def __init__(self, source_path, destination_path, key=None, secret=None):
         super(S3, self).__init__(source_path, destination_path, self._getfunc)
-        #session = boto3.Session(
-        #    aws_access_key_id       = key,
-        #    aws_secret_access_key   = secret,
-        #)
-        session = boto3.Session()
+        session = boto3.Session(
+            aws_access_key_id       = key,
+            aws_secret_access_key   = secret,
+        )
         self.session = session.client('s3')
