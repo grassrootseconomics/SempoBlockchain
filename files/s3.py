@@ -1,8 +1,14 @@
+# standard imports
+import logging
+
 # third party imports
 import boto3
 
 # platform imports
 from files.sync import FileSyncer
+
+
+logg = logging.getLogger(__file__)
 
 class S3(FileSyncer):
 
@@ -10,6 +16,7 @@ class S3(FileSyncer):
         return True
 
     def _getfunc(self, item):
+        logg.debug('s3 file sync callback get {} from {}'.format(item, self.source_path))
         reader = None
         try:
             response = self.session.get_object(
