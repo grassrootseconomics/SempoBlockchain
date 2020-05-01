@@ -1,3 +1,6 @@
+"""Use AWS S3 as file retrieval backend 
+"""
+
 # standard imports
 import logging
 
@@ -7,15 +10,46 @@ import boto3
 # platform imports
 from files.sync import FileSyncer
 
-
 logg = logging.getLogger(__file__)
 
+
 class S3(FileSyncer):
+    """Provides S3 access through FileSyncer interface
+
+    Attributes
+    ----------
+    session : boto3.Session
+        authenticated S3 session
+
+    Args
+    ----
+    source_path : str
+        bucket name
+    destination_path : str
+        local path for file output
+    key : str
+        aws session key id
+    secret : str
+        aws session secret
+    """
 
     def source_is_newer(self, filepath):
         return True
 
     def _getfunc(self, item):
+        """File callback used by FileSyncer.sync
+
+        Attributes
+        ----------
+        item : str
+            file name to retrieve
+        
+        Returns
+        -------
+        reader
+            object implementing read(readsize=int) method 
+        """
+
         logg.debug('s3 file sync callback get {} from {}'.format(item, self.source_path))
         reader = None
         try:
@@ -24,7 +58,7 @@ class S3(FileSyncer):
                     Key=item
                     )
             reader = response['Body']
-        # TODO: docs don't mention this as exception, is "errorfactory instance" - dunno how to catch, so we will have to catch all for now
+        # TODO: cannot determine the correct exception; is an "errorfactory instance"
         except Exception as e:
             raise KeyError(e)
         return reader

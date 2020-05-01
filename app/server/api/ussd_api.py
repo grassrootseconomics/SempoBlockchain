@@ -39,6 +39,8 @@ class ProcessKenyaUssd(MethodView):
         user_input = post_data.get('text')
         service_code = post_data.get('serviceCode')
 
+        # enforce only one single service code that can access the ussd state machine
+        # through the endpoint
         if config.USSD_VALID_SERVICE_CODE != service_code:
             response = 'END '
             response += i18n.t('ussd.kenya.invalid_service_code', valid_service_code = config.USSD_VALID_SERVICE_CODE, locale='sw')
