@@ -3,6 +3,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 import pendulum
 import secrets
 
+import config
+
 from server import db, bt
 from server.models.utils import ModelBase, organisation_association_table
 import server.models.transfer_account
