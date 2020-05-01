@@ -206,9 +206,11 @@ logg.info('Eth database URI: ' + CENSORED_ETH_URI)
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-AWS_SES_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID') or common_secrets_parser['AWS']['ses_key_id']
-AWS_SES_SECRET = os.environ.get('AWS_SECRET_ACCESS_KEY') or common_secrets_parser['AWS']['ses_secret']
-AWS_HAVE_CREDENTIALS = AWS_SES_KEY_ID and AWS_SES_SECRET
+AWS_SES_KEY_ID = common_secrets_parser['AWS']['ses_key_id']
+AWS_SES_SECRET = common_secrets_parser['AWS']['ses_secret']
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_HAVE_CREDENTIALS = AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 
 if IS_PRODUCTION:
     SENTRY_SERVER_DSN = common_secrets_parser['SENTRY']['server_dsn']
