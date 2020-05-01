@@ -153,7 +153,8 @@ class Organisation(ModelBase):
 
     def __init__(self, token=None, is_master=False, **kwargs):
         super(Organisation, self).__init__(**kwargs)
-    
+   
+        self._country_code = config.DEFAULT_COUNTRY
         self.external_auth_username = 'admin_'+ self.name.lower().replace(' ', '_')
         self.external_auth_password = secrets.token_hex(16)
 
