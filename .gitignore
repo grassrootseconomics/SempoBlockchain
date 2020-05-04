@@ -48,3 +48,4 @@ eth_worker/celerybeat-schedule
 eth_worker/celerybeat.pid
 
 .envrc
+**/.terraform/
