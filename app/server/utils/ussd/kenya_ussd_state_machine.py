@@ -6,12 +6,14 @@ The class contains methods responsible for validation of user input and processi
 the services provided by the  ussd app.
 """
 import re
+from phonenumbers.phonenumberutil import NumberParseException
 import math
 import config
 
 from transitions import Machine, State
 
-from server import message_processor, ussd_tasker
+from server import ussd_tasker
+from server.utils.phone import send_message
 from server.models.user import User, RegistrationMethodEnum
 from server.models.ussd import UssdSession
 from server.models.transfer_usage import TransferUsage
@@ -44,7 +46,6 @@ class KenyaUssdStateMachine(Machine):
         'send_token_reason',
         'send_token_reason_other',
         'send_token_pin_authorization',
-        'send_token_confirmation',
         # account management states
         'account_management',
         'balance_inquiry_pin_authorization',
@@ -99,7 +100,7 @@ class KenyaUssdStateMachine(Machine):
 
     def send_sms(self, phone, message_key, **kwargs):
         message = i18n_for(self.user, "ussd.kenya.{}".format(message_key), **kwargs)
-        message_processor.send_message(phone, message)
+        send_message(phone, message)
 
     def change_preferred_language_to_sw(self, user_input):
         self.change_preferred_language_to("sw")
@@ -293,12 +294,14 @@ class KenyaUssdStateMachine(Machine):
     def process_send_token_request(self, user_input):
         user = get_user_by_phone(self.session.get_data('recipient_phone'), "KE")
         amount = float(self.session.get_data('transaction_amount'))
-        reason_str = self.session.get_data('transaction_reason_i18n')
-        reason_id = float(self.session.get_data('transaction_reason_id'))
-        ussd_tasker.send_token(self.user, user, amount, reason_str, reason_id)
+        ussd_tasker.send_token(self.user, recipient=user, amount=amount)
 
     def upsell_unregistered_recipient(self, user_input):
-        recipient_phone = proccess_phone_number(user_input)
+        try:
+            recipient_phone = proccess_phone_number(user_input)
+        except NumberParseException:
+            return None
+
         self.send_sms(
             self.user.phone,
             'upsell_message_sender',
@@ -380,27 +383,30 @@ class KenyaUssdStateMachine(Machine):
         return self.user.registration_method == RegistrationMethodEnum.USSD_SIGNUP
 
     def has_empty_name_info(self, user_input):
-        if self.user.first_name == 'Unknown' or not self.user.first_name or not self.user.last_name:
+        if self.user.first_name == 'Unknown first name' or not \
+                self.user.first_name or \
+                self.user.last_name == 'Unknown last name' or not \
+                self.user.last_name:
             return True
         else:
             return False
 
     def has_empty_gender_info(self, user_input):
         gender = next(filter(lambda x: x.name == 'gender', self.user.custom_attributes), None)
-        if not gender:
+        if not gender or gender.value.strip('"') == 'Unknown gender':
             return True
         else:
             return False
 
     def has_empty_location_info(self, user_input):
-        if not self.user.location:
+        if not self.user.location or self.user.location == 'Unknown location':
             return True
         else:
             return False
 
     def has_empty_bio_info(self, user_input):
         bio = next(filter(lambda x: x.name == 'bio', self.user.custom_attributes), None)
-        if not bio:
+        if not bio or bio.value.strip('"') == 'Unknown business':
             return True
         else:
             return False
@@ -413,6 +419,15 @@ class KenyaUssdStateMachine(Machine):
             return True
         else:
             return False
+
+    def is_admin_pin_reset(self, user_input):
+        pin_reset_tokens = self.user.pin_reset_tokens or []
+        valid_reset_tokens = []
+        for reset_token in pin_reset_tokens:
+            if self.user.is_pin_reset_token_valid(reset_token):
+                valid_reset_tokens.append(reset_token)
+        has_valid_reset_tokens = len(valid_reset_tokens) > 0
+        return has_valid_reset_tokens
 
     def process_account_creation_request(self, user_input):
         try:
@@ -498,9 +513,15 @@ class KenyaUssdStateMachine(Machine):
             {'trigger': 'feed_char',
              'source': 'initial_pin_confirmation',
              'dest': 'exit_account_creation_prompt',
+             'unless': 'is_admin_pin_reset',
              'after': ['complete_initial_pin_change', 'set_phone_as_verified', 'send_terms_to_user_if_required',
                        'process_account_creation_request'],
              'conditions': ['is_ussd_signup', 'new_pins_match']},
+            {'trigger': 'feed_char',
+             'source': 'initial_pin_confirmation',
+             'dest': 'start',
+             'conditions': ['new_pins_match', 'is_admin_pin_reset'],
+             'after': 'complete_initial_pin_change'},
             {'trigger': 'feed_char',
              'source': 'initial_pin_confirmation',
              'dest': 'start',
@@ -512,7 +533,7 @@ class KenyaUssdStateMachine(Machine):
         ]
         self.add_transitions(initial_pin_confirmation_transitions)
 
-        # event: directory_listing
+        # event: start transitions
         start_transitions = [
             {'trigger': 'feed_char',
              'source': 'start',
@@ -563,7 +584,7 @@ class KenyaUssdStateMachine(Machine):
         send_token_amount_transitions = [
             {'trigger': 'feed_char',
              'source': 'send_token_amount',
-             'dest': 'send_token_reason',
+             'dest': 'send_token_pin_authorization',
              'conditions': 'is_valid_token_amount',
              'after': ['save_transaction_amount', 'store_transfer_usage']},
             {'trigger': 'feed_char',
@@ -647,31 +668,15 @@ class KenyaUssdStateMachine(Machine):
         send_token_pin_authorization_transitions = [
             {'trigger': 'feed_char',
              'source': 'send_token_pin_authorization',
-             'dest': 'send_token_confirmation',
-             'conditions': 'is_authorized_pin'},
+             'dest': 'complete',
+             'conditions': 'is_authorized_pin',
+             'after': 'process_send_token_request'},
             {'trigger': 'feed_char',
              'source': 'send_token_pin_authorization',
              'dest': 'exit_pin_blocked',
              'conditions': 'is_blocked_pin'}
         ]
         self.add_transitions(send_token_pin_authorization_transitions)
-
-        # event: send_token_confirmation transitions
-        send_token_confirmation_transitions = [
-            {'trigger': 'feed_char',
-             'source': 'send_token_confirmation',
-             'dest': 'complete',
-             'after': 'process_send_token_request',
-             'conditions': 'menu_one_selected'},
-            {'trigger': 'feed_char',
-             'source': 'send_token_confirmation',
-             'dest': 'exit',
-             'conditions': 'menu_two_selected'},
-            {'trigger': 'feed_char',
-             'source': 'send_token_confirmation',
-             'dest': 'exit_invalid_menu_option'}
-        ]
-        self.add_transitions(send_token_confirmation_transitions)
 
         # event: account_management transitions
         account_management_transitions = [
