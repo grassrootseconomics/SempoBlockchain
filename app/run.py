@@ -12,5 +12,4 @@ from server import create_app
 
 app = create_app()
 
-print(parent_dir)
-#app.run(debug=True, threaded=True, host='0.0.0.0', port=9000)
+app.run(debug=True, threaded=True, host='0.0.0.0', port=9000)
