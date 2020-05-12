@@ -4,6 +4,33 @@ provider "aws" {
   # Auth credentials are fetched from environment
 }
 
+resource "aws_elb" "staging_lb" {
+  availability_zones = [
+    "eu-central-1a",
+    "eu-central-1b",
+    "eu-central-1c"
+  ]
+
+  listener {
+    instance_port = "80"
+    instance_protocol = "http"
+    lb_port = "80"
+    lb_protocol = "http"
+    ssl_certificate_id = ""
+  }
+
+  listener {
+    instance_port = "80"
+    instance_protocol = "http"
+    lb_port = "443"
+    lb_protocol = "https"
+    ssl_certificate_id = "arn:aws:acm:eu-central-1:847108109661:certificate/6e0be53c-0a68-49c5-a8b3-75c59997ca8b"
+  }
+
+  connection_draining         = true
+  connection_draining_timeout = 20
+}
+
 resource "aws_elastic_beanstalk_environment" "staging_env" {
   # (resource arguments)
   name                = "Sempoblockchain-env"
