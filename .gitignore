@@ -51,3 +51,4 @@ eth_worker/celerybeat.pid
 **/.terraform/
 .vagrant/
 result
+app/coverage/
