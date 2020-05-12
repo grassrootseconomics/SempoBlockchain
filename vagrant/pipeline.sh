@@ -6,6 +6,7 @@ set -ex
 ./vagrant/node_install.sh
 ./vagrant/node_build.sh
 ./vagrant/docker_build.sh
-./vagrant/docker_up.sh
+./vagrant/backend_test.sh
+./vagrant/frontend_test.sh
 
 set +ex
