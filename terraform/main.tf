@@ -12,11 +12,19 @@ resource "aws_elb" "staging_lb" {
   ]
 
   listener {
-    instance_port = 80
+    instance_port = "80"
     instance_protocol = "http"
-    lb_port = 80
+    lb_port = "80"
     lb_protocol = "http"
     ssl_certificate_id = ""
+  }
+
+  listener {
+    instance_port = "80"
+    instance_protocol = "http"
+    lb_port = "443"
+    lb_protocol = "https"
+    ssl_certificate_id = "arn:aws:acm:eu-central-1:847108109661:certificate/6e0be53c-0a68-49c5-a8b3-75c59997ca8b"
   }
 
   connection_draining         = true
