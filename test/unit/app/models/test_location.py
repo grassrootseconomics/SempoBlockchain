@@ -9,7 +9,7 @@ import logging
 from server import db
 from helpers.factories import UserFactory 
 from server.models import Location
-from share.location import LocationExternalSourceEnum
+from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger(__file__)
 
