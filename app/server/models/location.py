@@ -15,10 +15,10 @@ from sqlalchemy import text
 # platform imports
 from server import db
 from server.models.utils import ModelBase
-from share.location import LocationExternalSourceEnum
-
+from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger(__file__)
+
 
 class LocationExternal(db.Model):
     """SqlAlchemy model class that Maps data from external map resources
