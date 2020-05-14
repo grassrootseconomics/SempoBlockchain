@@ -15,6 +15,5 @@ if __name__ == '__main__':
     # or (pytest --help)
 
     #r = pytest.main(['-v', '-x', '-s', 'test'] + sys.argv[1:])
-    r = pytest.main(['-v', '-x', '-s', 'test/functional'] + sys.argv[1:])
-    r += pytest.main(['-v', '-x', '-s', 'test/unit'] + sys.argv[1:])
+    r = pytest.main(['-v', '-x', '-s', 'test'] + sys.argv[1:])
     exit(r)
