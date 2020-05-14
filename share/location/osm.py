@@ -14,8 +14,6 @@ logg = logging.getLogger(__file__)
 logg.debug(sys.path)
 # platform imports
 import config
-from server import db
-from server.models.location import Location, LocationExternal
 from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
 
 # local imports
@@ -38,36 +36,62 @@ def osm_get_detail(place_id : int):
 
 
 # TODO: this is a standalone tool and should reside in a commonly available location
-def osm_get_place_hierarchy(place_id : int):
+def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
     """Retrieves details from the OSM HTTP endpoint of the matching place_id,
-    and recursively retrieves its parent relation places.
+    and recursively retrieves its parent relation places. The results are returned as location dict objects
+
+    Location dict object has the following structure:
+
+    {
+        'name': common name of location
+        'latitude': latitude
+        'longitude': longitude
+        'ext_type': osm location type enum
+        'ext_data': dict with osm specific fields
+    }
+
+    If storage_check_callback is given, a return value other than None will signal to the loop that the location is already known,
+    That location is then added to the list, and the loop is terminated.
+
 
     Parameters
     ----------
     place_id : int
         osm place_id of start node
+    storage_check_callback : function
+        callback to check existence of location in caller
 
     Returns
     -------
     locations : list
-        all resolved locations as Location model objects not already existing in database,
+        all resolved locations as location dict objects not already existing according to storage check callback
         in hierarchical order from lowest (start node) to highest
+
     """
 
     locations = []
 
     # iterate until parent relation is 0
     next_place_id = place_id
+    last_is_cached = False
     while next_place_id != 0:
 
         # check if data already exists, if so, return prematurely as within that location relation
         # the caller has everything it nneeds
+        new_location = {}
         ext_data = {}
-        r = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'place_id', next_place_id)
-        if r != None:
-            #locations.append(r[0])
-            locations.append(r)
-            break
+
+        if storage_check_callback != None:
+            r = storage_check_callback(next_place_id)
+            if r != None:
+                new_location['name'] = r.common_name
+                new_location['latitude'] = r.latitude
+                new_location['longitude'] = r.longitude
+                new_location['ext_type'] = LocationExternalSourceEnum.OSM
+                new_location['ext_data'] = {}
+                new_location['ext_data']['place_id'] = next_place_id
+                locations.append(new_location)
+                break
        
         response_json = osm_get_detail(next_place_id)
         current_place_id = next_place_id
@@ -76,23 +100,24 @@ def osm_get_place_hierarchy(place_id : int):
             logg.debug('place id {} is unclassified, get parent {}'.format(current_place_id, next_place_id))
             continue
        
-        # create new location object and add it to list of
-        # new locations not already in database
-        new_location = Location(
-                response_json['names']['name'],
-                response_json['centroid']['coordinates'][0],
-                response_json['centroid']['coordinates'][1]
-                )
+        # create new location object and add it to list 
+        new_location = {
+                'name': response_json['names']['name'],
+                'latitude': response_json['centroid']['coordinates'][0],
+                'longitude': response_json['centroid']['coordinates'][1],
+                }
+
         for field in osm_extension_fields:
             ext_data[field] = response_json[field]
 
-        new_location.add_external_data(LocationExternalSourceEnum.OSM, ext_data)
+        new_location['ext_type'] = LocationExternalSourceEnum.OSM
+        new_location['ext_data'] = ext_data
         locations.append(new_location)
 
     return locations
 
 
-def osm_resolve_name(name, country=DEFAULT_COUNTRY_CODE):
+def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
     """Searches the OSM HTTP endpoint for a location name. If a match is found
     the location hierarchy is built and committed to database.
 
@@ -147,22 +172,22 @@ def osm_resolve_name(name, country=DEFAULT_COUNTRY_CODE):
     # get related locations not already in database
     locations = []
     try:
-        locations = osm_get_place_hierarchy(place_id)
+        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
         logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
     except requests.exceptions.Timeout as e:
         logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
                  
-    # set hierarchical relations and store in database
-    for i in range(len(locations)-1):
-        locations[i].set_parent(locations[i+1])
-        db.session.add(locations[i])
-    db.session.commit()
+#    # set hierarchical relations and store in database
+#    for i in range(len(locations)-1):
+#        locations[i].set_parent(locations[i+1])
+#        db.session.add(locations[i])
+#    db.session.commit()
 
-    return locations[0]
+    return locations
 
 
-def osm_resolve_coordinates(latitude, longitude):
+def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
   
     q = {
         'format': 'json',
@@ -204,16 +229,10 @@ def osm_resolve_coordinates(latitude, longitude):
     # get related locations not already in database
     locations = []
     try:
-        locations = osm_get_place_hierarchy(place_id)
+        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
         logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
     except requests.exceptions.Timeout as e:
         logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
                  
-    # set hierarchical relations and store in database
-    for i in range(len(locations)-1):
-        locations[i].set_parent(locations[i+1])
-        db.session.add(locations[i])
-    db.session.commit()
-
-    return locations[0]
+    return locations
