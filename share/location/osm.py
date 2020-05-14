@@ -135,18 +135,18 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
     """
 
     # build osm query
-    q = {
+    query = {
             'format': 'json',
             'dedupe': 1,
             'country': country, 
             'q': name,
             }
     if getattr(config, 'EXT_OSM_EMAIL', None):
-        q['email'] = config.EXT_OSM_EMAIL
-    q = urllib.parse.urlencode(q)
+        query['email'] = config.EXT_OSM_EMAIL
+    query_string = urllib.parse.urlencode(query)
 
     # perform osm query
-    url = 'https://nominatim.openstreetmap.org/search?' + q
+    url = 'https://nominatim.openstreetmap.org/search?' + query_string
     try:
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
@@ -189,7 +189,7 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
 
 def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
   
-    q = {
+    query = {
         'format': 'json',
         'lat': latitude,
         'lon': longitude,
@@ -197,10 +197,10 @@ def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
 
     if getattr(config, 'EXT_OSM_EMAIL', None):
         q['email'] = config.EXT_OSM_EMAIL
-    q = urllib.parse.urlencode(q)
+    query_string = urllib.parse.urlencode(query)
 
     # perform osm query
-    url = 'https://nominatim.openstreetmap.org/reverse?' + q
+    url = 'https://nominatim.openstreetmap.org/reverse?' + query_string
     try:
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
