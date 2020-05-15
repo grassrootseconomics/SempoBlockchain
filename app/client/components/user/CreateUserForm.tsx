@@ -1,12 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import {
-  reduxForm,
-  InjectedFormProps,
-  formValueSelector,
-  FormSection
-} from "redux-form";
+import { reduxForm, InjectedFormProps, formValueSelector } from "redux-form";
 import QrReadingModal from "../qrReadingModal";
 import { ErrorMessage, ModuleHeader } from "../styledElements";
 import AsyncButton from "../AsyncButton";
@@ -30,6 +25,7 @@ export interface ICreateUser {
   businessUsage?: string;
   usageOtherSpecific?: string;
   accountType: any[TransferAccountTypes];
+  registration_method?: string;
 }
 
 export interface ICreateVendor {
@@ -42,6 +38,7 @@ export interface ICreateVendor {
   existingVendorPin?: string;
   location?: string;
   transferAccountName?: string;
+  registration_method?: string;
 }
 
 export type ICreateUserUpdate = ICreateUser & ICreateVendor;
@@ -49,6 +46,7 @@ export type ICreateUserUpdate = ICreateUser & ICreateVendor;
 interface OuterProps {
   users: any;
   transferUsages: TransferUsage[];
+  transferAccountType: string;
 }
 
 interface StateProps {
@@ -78,6 +76,7 @@ class CreateUserForm extends React.Component<
     this.props.initialize({
       accountType: TransferAccountTypes.USER.toLowerCase(),
       gender: "female",
+      registration_method: "WEB_SIGNUP",
       initialDisbursement: defaultDisbursement
     });
   }
@@ -249,11 +248,9 @@ class CreateUserForm extends React.Component<
   }
 }
 
-// TODO: can't figure out the typing here...
-const CreateUserFormReduxForm = reduxForm({
+const CreateUserFormReduxForm = reduxForm<ICreateUser, Props>({
   form: "createUser",
   validate
-  // @ts-ignore
 })(CreateUserForm);
 
 export default connect(
@@ -270,5 +267,4 @@ export default connect(
           .default_disbursement / 100
     };
   }
-  // @ts-ignore
 )(CreateUserFormReduxForm);

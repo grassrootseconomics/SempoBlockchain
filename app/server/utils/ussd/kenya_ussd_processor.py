@@ -99,8 +99,20 @@ class KenyaUssdProcessor:
                 elif gender_text == 'female':
                     gender_text = 'mwanamke'
 
-            if first_name == 'Unknown':
+            if first_name == 'Unknown first name':
                 first_name = None
+
+            if last_name == 'Unknown last name':
+                last_name = None
+
+            if bio_text == 'Unknown business':
+                bio_text = None
+
+            if gender_text == 'Unknown gender':
+                gender_text = None
+
+            if location == 'Unknown location':
+                location = None
 
             # define final values to show in menu
             first_name = first_name or absent_value_placeholder
@@ -118,18 +130,43 @@ class KenyaUssdProcessor:
                             gender=gender_text,
                             location=location, user_bio=bio_text)
 
-        if menu.name == 'send_token_confirmation':
+        if menu.name == 'send_token_pin_authorization':
             recipient = get_user_by_phone(ussd_session.get_data('recipient_phone'), 'KE', True)
-            recipient_phone = recipient.user_details()
+            other_user_details = recipient.user_details()
+            user_details = user.user_details()
             token = default_token(user)
             transaction_amount = ussd_session.get_data('transaction_amount')
-            transaction_reason = ussd_session.get_data('transaction_reason_i18n')
+            if user.failed_pin_attempts > 0:
+                return i18n_for(
+                    user=user,
+                    key="{}.{}".format(menu.display_key, 'retry'),
+                    remaining_attempts=3 - user.failed_pin_attempts
+                )
+            else:
+                return i18n_for(
+                    user=user,
+                    key="{}.{}".format(menu.display_key, 'first'),
+                    transaction_amount=cents_to_dollars(transaction_amount),
+                    token_name=token.symbol,
+                    other_user_details=other_user_details,
+                    user_details=user_details
+
+                )
+
+        if menu.name == 'exit_successful_send_token':
+            recipient = get_user_by_phone(ussd_session.get_data('recipient_phone'), 'KE', True)
+            other_user_details = recipient.user_details()
+            user_details = user.user_details()
+            token = default_token(user)
+            transaction_amount = ussd_session.get_data('transaction_amount')
             return i18n_for(
-                user, menu.display_key,
-                recipient_phone=recipient_phone,
-                token_name=token.symbol,
+                user=user,
+                key="{}".format(menu.display_key, 'exit_successful_send_token'),
                 transaction_amount=cents_to_dollars(transaction_amount),
-                transaction_reason=transaction_reason
+                token_name=token.symbol,
+                other_user_details=other_user_details,
+                user_details=user_details
+
             )
 
         if menu.name == 'exchange_token_confirmation':

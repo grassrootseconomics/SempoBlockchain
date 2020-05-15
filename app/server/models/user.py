@@ -37,6 +37,8 @@ from server.models.organisation import Organisation
 from server.models.blacklist_token import BlacklistToken
 from server.models.transfer_card import TransferCard
 from server.models.transfer_usage import TransferUsage
+from server.models.user_extension import UserExtension
+
 from server.exceptions import (
     RoleNotFoundException,
     TierNotFoundException,
@@ -179,6 +181,8 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
 
     exchanges = db.relationship("Exchange", backref="user")
 
+    _full_location = db.relationship(UserExtension)
+
     def delete_user_and_transfer_account(self):
         """
         Soft deletes a User and default Transfer account if no other users associated to it.
@@ -260,6 +264,19 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
             issuer_name='Sempo: {}'.format(
                 current_app.config.get('DEPLOYMENT_NAME'))
         )
+
+    @hybrid_property
+    def full_location(self):
+        if len(self._full_location) == 0:
+            return None
+        return self._full_location[0]
+
+    @full_location.setter
+    def full_location(self, location):
+        if len(self._full_location) == 0:
+            self._full_location.append(location)
+        else:
+            self._full_location[0] = location
 
     @hybrid_property
     def location(self):
@@ -560,6 +577,11 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
         is_valid = password_reset_token in self.password_reset_tokens
         return is_valid
 
+    def is_pin_reset_token_valid(self, pin_reset_token):
+        self.clear_expired_pin_reset_tokens()
+        pin_reset_token_in_valid_reset_tokens = pin_reset_token in self.pin_reset_tokens
+        return pin_reset_token_in_valid_reset_tokens
+
     def delete_password_reset_tokens(self):
         self.password_reset_tokens = []
 
@@ -659,8 +681,11 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
         return self.pin_hash is not None and not_resetting and self.failed_pin_attempts < 3
 
     def user_details(self):
-        # should drop the country code from phone number?
-        return "{} {} {}".format(self.first_name, self.last_name, self.phone)
+        # return phone numbers only if any of user's details are unknown
+        if 'Unknown' in self.first_name or 'Unknown' in self.last_name:
+            return "{}".format(self.phone)
+        else:
+            return "{} {} {}".format(self.first_name, self.last_name, self.phone)
 
     def get_most_relevant_transfer_usages(self):
         '''Finds the transfer usage/business categories there are most relevant for the user

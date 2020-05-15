@@ -3,11 +3,13 @@ from eth_keys import keys
 from eth_utils import keccak
 
 import logging
+env_loglevel = os.environ.get('LOGLEVEL', 'DEBUG')
+logging.basicConfig(level=env_loglevel)
 logg = logging.getLogger(__name__)
 
 from web3 import Web3
 
-VERSION = '1.1.19'  # Remember to bump this in every PR
+VERSION = '1.1.28'  # Remember to bump this in every PR
 
 logg.info('Loading configs at UTC {}'.format(datetime.datetime.utcnow()))
 
@@ -129,6 +131,7 @@ ONBOARDING_SMS = config_parser['APP'].getboolean('ONBOARDING_SMS', False)
 TFA_REQUIRED_ROLES = config_parser['APP']['TFA_REQUIRED_ROLES'].split(',')
 MOBILE_VERSION = config_parser['APP']['MOBILE_VERSION']
 SEMPOADMIN_EMAILS = config_parser['APP'].get('sempoadmin_emails', '').split(',')
+DEFAULT_COUNTRY = config_parser['APP'].get('default_country')
 
 TOKEN_EXPIRATION =  60 * 60 * 24 * 1 # Day
 PASSWORD_PEPPER     = secrets_parser['APP'].get('PASSWORD_PEPPER')
@@ -155,7 +158,7 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD") or secrets_parser['DATAB
 
 DATABASE_HOST = config_parser['DATABASE']['host']
 
-DATABASE_PORT = config_parser['DATABASE']['port'] or 5432
+DATABASE_PORT = config_parser['DATABASE'].get('port') or 5432
 
 DATABASE_NAME = config_parser['DATABASE'].get('database') \
                 or common_secrets_parser['DATABASE']['database']
@@ -366,6 +369,10 @@ except KeyError:
     GE_DB_PORT = ''
     GE_DB_PASSWORD = ''
     GE_HTTP_PROVIDER = ''
+
+EXT_OSM_EMAIL = os.environ.get('OSM_EMAIL')
+if not EXT_OSM_EMAIL and config_parser.has_section('OSM'):
+    EXT_OSM_EMAIL = config_parser['OSM']['email']
 
 TRANSFER_LIMITS = {}
 TRANSFER_LIMITS['0.P7']	= 5000

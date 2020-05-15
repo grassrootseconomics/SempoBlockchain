@@ -4,7 +4,8 @@ This file (test_utils_user.py) contains the unit tests for the user.py file in u
 from functools import partial
 
 import pytest
-
+import config
+from flask import g
 
 # REDACTED: USERS NOW HAVE MULTIPLE TRANSFER ACCOUNTS
 # def test_create_transfer_account_user(create_transfer_account_user):
@@ -18,7 +19,10 @@ import pytest
 #     assert create_transfer_account_user.one_time_code is not None
 #     assert create_transfer_account_user.transfer_account is not None
 from helpers.factories import UserFactory, OrganisationFactory, TokenFactory, TransferAccountFactory, fake
-from server.utils.user import transfer_usages_for_user, send_onboarding_sms_messages, admin_reset_user_pin, proccess_create_or_modify_user_request
+from server.models.user import RegistrationMethodEnum
+from server.utils.user import transfer_usages_for_user, admin_reset_user_pin, proccess_create_or_modify_user_request, send_onboarding_sms_messages, attach_transfer_account_to_user
+from server import db
+
 
 @pytest.mark.parametrize("last_name, location, lat, lng, initial_disbursement", [
     ('Hound', 'Melbourne, Victoria Australia', -37.8104277, 144.9629153, 400),
@@ -91,19 +95,15 @@ def test_transfer_usages_for_user(authed_sempo_admin_user):
     assert isinstance(usages, list)
 
 
-def test_admin_reset_user_pin(mocker, test_client, init_database, create_transfer_account_user):
-    send_message = mocker.MagicMock()
-    mocker.patch('server.message_processor.send_message', send_message)
-
+def test_admin_reset_user_pin(mocker, test_client, init_database, create_transfer_account_user, mock_sms_apis):
     user = create_transfer_account_user
     admin_reset_user_pin(user)
 
     assert user.failed_pin_attempts == 0
     assert isinstance(user.pin_reset_tokens, list)
     assert len(user.pin_reset_tokens) == 1
-
-    send_message.assert_has_calls([mocker.call(user.phone, 'Dial *483*46# to change your PIN')])
-
+    messages = mock_sms_apis
+    assert messages == [{'phone': user.phone, 'message': 'Dial *483*46# to change your PIN'}]
 
 @pytest.mark.parametrize("preferred_language, org_key, expected_welcome, expected_terms", [
 
@@ -124,7 +124,7 @@ def test_admin_reset_user_pin(mocker, test_client, init_database, create_transfe
      'Kwa kutumia hii huduma, umekubali sheria na masharti yafuatayo https://www.grassrootseconomics.org/terms-and-conditions.'),
 
 ])
-def test_send_welcome_sms(mocker, test_client, init_database,
+def test_send_welcome_sms(mocker, test_client, init_database, mock_sms_apis,
                           preferred_language, org_key, expected_welcome, expected_terms):
     from flask import g
 
@@ -139,12 +139,27 @@ def test_send_welcome_sms(mocker, test_client, init_database,
                        default_organisation=organisation,
                        transfer_accounts=[transfer_account])
 
-    send_message = mocker.MagicMock()
-    mocker.patch('server.message_processor.send_message', send_message)
-
     send_onboarding_sms_messages(user)
 
-    send_message.assert_has_calls(
-        [mocker.call('+61123456789', expected_welcome),
-         mocker.call('+61123456789', expected_terms)])
+    messages = mock_sms_apis
+    assert messages == [{'phone': '+61123456789', 'message': expected_welcome},
+                        {'phone': '+61123456789', 'message': expected_terms},]
 
+def test_attach_transfer_account_to_user(test_client, init_database, create_organisation):
+    with db.session.no_autoflush:
+        organisation = create_organisation
+        organisation.external_auth_password = config.EXTERNAL_AUTH_PASSWORD
+
+        g.active_organisation = organisation
+
+        user = UserFactory(id=20,
+                           phone='+61756432178',
+                           first_name='Unknown first name',
+                           last_name='Unknown last name',
+                           registration_method=RegistrationMethodEnum.USSD_SIGNUP)
+
+        user.add_user_to_organisation(organisation, False)
+        assert user.primary_blockchain_address is None
+
+        user_with_transfer_account = attach_transfer_account_to_user(user)
+        assert user_with_transfer_account.primary_blockchain_address is not None

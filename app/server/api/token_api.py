@@ -44,7 +44,6 @@ class TokenAPI(MethodView):
         rather than creating a new contract.
         To create a new token contract, use api/contract/token/.
         """
-        # TODO: Requires tests
         post_data = request.get_json()
         name = post_data['name']
         symbol = post_data['symbol']
@@ -66,7 +65,8 @@ class TokenAPI(MethodView):
 
         token_type = TokenType.RESERVE if is_reserve else TokenType.LIQUID
 
-        token = Token(address=address, name=name, symbol=symbol, decimals=decimals, token_type=token_type)
+        token = Token(address=address, name=name, symbol=symbol, token_type=token_type)
+        token.decimals = decimals
         db.session.add(token)
 
         response_object = {

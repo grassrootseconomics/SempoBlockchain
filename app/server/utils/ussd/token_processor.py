@@ -4,7 +4,8 @@ from typing import Optional
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.sql import func
 
-from server import db, message_processor
+from server import db
+from server.utils.phone import send_message
 from server.exceptions import (
     NoTransferAllowedLimitError,
     TransferBalanceFractionLimitError,
@@ -35,7 +36,7 @@ class TokenProcessor(object):
     def send_sms(user, message_key, **kwargs):
         # if we use token processor similarly for other countries later, can generalize country to init
         message = i18n_for(user, "ussd.kenya.{}".format(message_key), **kwargs)
-        message_processor.send_message(user.phone, message)
+        send_message(user.phone, message)
 
     @staticmethod
     def send_success_sms(message_key: str, user: User, other_user: User, amount: float, tx_time: datetime,
@@ -44,8 +45,13 @@ class TokenProcessor(object):
         amount_dollars = rounded_dollars(amount)
         rounded_balance_dollars = rounded_dollars(balance)
 
-        TokenProcessor.send_sms(user, message_key, amount=amount_dollars, token_name=default_token(user).symbol,
-                                other_user=other_user.user_details(), date=tx_time.strftime('%d/%m/%Y'),
+        TokenProcessor.send_sms(user=user,
+                                message_key=message_key,
+                                amount=amount_dollars,
+                                token_name=default_token(user).symbol,
+                                user_details=user.user_details(),
+                                other_user_details=other_user.user_details(),
+                                date=tx_time.strftime('%d/%m/%Y'),
                                 time=tx_time.strftime('%I:%M %p'), balance=rounded_balance_dollars)
 
     @staticmethod
@@ -220,7 +226,11 @@ class TokenProcessor(object):
             )
 
     @staticmethod
-    def send_token(sender: User, recipient: User, amount: float, reason_str: str, reason_id: int):
+    def send_token(sender: User,
+                   recipient: User,
+                   amount: float,
+                   reason_str: Optional[str] = None,
+                   reason_id: Optional[int] = None):
         try:
             exchanged_amount = TokenProcessor.transfer_token(sender, recipient, amount, reason_id)
 
@@ -231,20 +241,20 @@ class TokenProcessor(object):
             recipient_balance = TokenProcessor.get_balance(recipient)
             if exchanged_amount is None:
                 TokenProcessor.send_success_sms(
-                    "send_token_sender_sms",
-                    sender,
-                    recipient,
-                    amount,
-                    sender_tx_time,
-                    sender_balance)
+                    message_key="send_token_sender_sms",
+                    user=sender,
+                    other_user=recipient,
+                    amount=amount,
+                    tx_time=sender_tx_time,
+                    balance=sender_balance)
 
                 TokenProcessor.send_success_sms(
-                    "send_token_recipient_sms",
-                    recipient,
-                    sender,
-                    amount,
-                    recipient_tx_time,
-                    recipient_balance)
+                    message_key="send_token_recipient_sms",
+                    user=recipient,
+                    other_user=sender,
+                    amount=amount,
+                    tx_time=recipient_tx_time,
+                    balance=recipient_balance)
             else:
                 TokenProcessor.exchange_success_sms(
                     "exchange_token_sender_sms",

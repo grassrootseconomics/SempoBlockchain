@@ -1,7 +1,7 @@
 FROM python:3.6-slim-stretch
 
 RUN apt update \
-  && apt -y install gcc g++ libffi-dev libstdc++-6-dev python3-dev musl-dev libssl-dev
+  && apt -y install gcc g++ libffi-dev libstdc++-6-dev python3-dev musl-dev libssl-dev curl
 
 # GE MIGRATION
 # For local OSX try:
@@ -26,10 +26,9 @@ ADD ./app/_docker_app_script.sh /
 ADD ./test /src/test
 ADD ./invoke_tests.py /src
 ADD .coveragerc /src
+ADD ./share /src/share
 
 WORKDIR /
-
-RUN apt -y install curl
 
 RUN chmod +x /_docker_app_script.sh
 
