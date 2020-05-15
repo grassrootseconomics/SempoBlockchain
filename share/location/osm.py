@@ -35,7 +35,6 @@ def osm_get_detail(place_id : int):
     return response_json
 
 
-# TODO: this is a standalone tool and should reside in a commonly available location
 def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
     """Retrieves details from the OSM HTTP endpoint of the matching place_id,
     and recursively retrieves its parent relation places. The results are returned as location dict objects
@@ -151,7 +150,6 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
         logg.warning('request timeout to openstreetmap; {}:{}'.format(country, name))
-        # TODO: re-insert task
         return None
     if response.status_code != 200:
         logg.warning('failed request to openstreetmap; {}:{}'.format(country, name))
@@ -205,7 +203,6 @@ def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
         logg.warning('request timeout to openstreetmap; {}:{}'.format(country, name))
-        # TODO: re-insert task
         return None
     if response.status_code != 200:
         logg.warning('failed request to openstreetmap; {}:{}'.format(country, name))
