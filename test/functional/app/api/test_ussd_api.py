@@ -60,7 +60,7 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     token = Token.query.filter_by(symbol="SM1").first()
     org = OrganisationFactory(country_code=config.DEFAULT_COUNTRY)
     sender = UserFactory(preferred_language="en",
-                         phone=make_kenyan_phone(phone()),
+                         phone='+6110011223344',
                          first_name="Bob",
                          last_name="Foo",
                          pin_hash=User.salt_hash_secret('0000'),
@@ -68,7 +68,7 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     create_transfer_account_for_user(sender, token, 4220)
 
     recipient = UserFactory(preferred_language="sw",
-                            phone=make_kenyan_phone(phone()),
+                            phone='+6114433221100',
                             first_name="Joe",
                             last_name="Bar",
                             default_organisation=org)
@@ -116,7 +116,7 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     assert "CON Enter Amount" in resp
 
     resp = req("12.5", test_client, sender.phone)
-    assert "CON Send 12.5 SM1" in resp
+    assert f"{recipient.user_details()} will receive 12.5 {token.symbol} from {sender.user_details()}" in resp
 
     resp = req("0000", test_client, sender.phone)
     assert "END Your request has been sent." in resp
@@ -124,11 +124,11 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     assert default_transfer_account(sender).balance == (4220 - 100 - 100 - 1250)
     assert default_transfer_account(recipient).balance == (1980 + 100 + 100 + 1250)
 
-    assert len(messages) == 3
-    sent_message = messages[1]
+    assert len(messages) == 2
+    sent_message = messages[0]
     assert sent_message['phone'] == sender.phone
     assert f"sent a payment of 12.50 SM1 to {recipient.first_name}" in sent_message['message']
-    received_message = messages[2]
+    received_message = messages[1]
     assert received_message['phone'] == recipient.phone
     assert f"Umepokea 12.50 SM1 kutoka kwa {sender.first_name}" in received_message['message']
 
@@ -200,20 +200,13 @@ def test_ussd_self_signup_wrong_pin_entry(test_client,
     resp = req("", test_client, other_unregistered_user_phone)
     assert "CON Welcome to Sarafu" in resp
 
-    # create self signup user
-    user = UserFactory(id=22,
-                       phone=other_unregistered_user_phone,
-                       first_name='Unknown first name',
-                       last_name='Unknown last name',
-                       registration_method=RegistrationMethodEnum.USSD_SIGNUP)
-
-    resp = req("1", test_client, user.phone, auth_username=external_auth_username)
+    resp = req("1", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
     assert "CON Please enter a PIN" in resp
 
-    resp = req("0000", test_client, user.phone, auth_username=external_auth_username)
+    resp = req("0000", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
     assert "CON Enter your PIN again" in resp
 
-    resp = req("1212", test_client, user.phone, auth_username=external_auth_username)
+    resp = req("1212", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
     assert "END The new PIN does not match the one you entered." in resp
 
 
