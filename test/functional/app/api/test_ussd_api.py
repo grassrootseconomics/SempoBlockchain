@@ -200,13 +200,20 @@ def test_ussd_self_signup_wrong_pin_entry(test_client,
     resp = req("", test_client, other_unregistered_user_phone)
     assert "CON Welcome to Sarafu" in resp
 
-    resp = req("1", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
+    # create self signup user
+    user = UserFactory(id=22,
+                       phone=other_unregistered_user_phone,
+                       first_name='Unknown first name',
+                       last_name='Unknown last name',
+                       registration_method=RegistrationMethodEnum.USSD_SIGNUP)
+
+    resp = req("1", test_client, user.phone, auth_username=external_auth_username)
     assert "CON Please enter a PIN" in resp
 
-    resp = req("0000", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
+    resp = req("0000", test_client, user.phone, auth_username=external_auth_username)
     assert "CON Enter your PIN again" in resp
 
-    resp = req("1212", test_client, other_unregistered_user_phone, auth_username=external_auth_username)
+    resp = req("1212", test_client, user.phone, auth_username=external_auth_username)
     assert "END The new PIN does not match the one you entered." in resp
 
 
