@@ -44,9 +44,9 @@ sw:
         10. Onyesha chaguzi zilizopita
     send_token_pin_authorization:
       first: |
-        CON Tuma %{transaction_amount} %{token_name} kwa %{recipient_phone}.
-        Weka nambari ya siri kuthibitisha.
-        0. Nyuma
+        CON %{other_user_details} atapokea %{transaction_amount} %{token_name} kutoka kwa %{user_details}.
+        Tafadhali weka nambari yako ya siri kudhibitisha.
+        0. Back
       retry: |
         CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
@@ -221,6 +221,8 @@ sw:
     exit_invalid_recipient: END Mpokeaji wa nambari hapatikani au sio sahihi
     exit_use_exchange_menu: END Mpokeaji wa nambari ni wakala. Ili kubadilisha, tumia ubadilishaji
     exit_invalid_token_agent: END wakala wa nambari hapatikani au sio sahihi
+    exit_successful_send_token: |
+      END Ombi lako limetumwa. %{other_user_details} atapokea %{transaction_amount} %{token_name} kutoka kwa %{user_details}. Utapokea ujumbe mfupi kwa sms.
     exit_not_registered: |
       END Haujasajiliwa kwa Sarafu. Kusajili tuma: jina, nambari ya simu, eneo na biashara yako kwa 0757628885
     exit_invalid_exchange_amount: END Kiwango ulichoweka hakitoshi. Tafadhali weka kiwango cha 40 au zaidi.
