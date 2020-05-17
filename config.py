@@ -32,14 +32,23 @@ secrets_parser = configparser.ConfigParser()
 
 load_from_s3 = False
 if os.environ.get('LOAD_FROM_S3') is not None:
-    logg.debug("ATTEMPT LOAD CONFIG FROM S3")
-    load_from_s3 = str(os.environ.get('LOAD_FROM_S3')).lower() in ['1', 'true']
+    logg.debug("LOAD_FROM_S3 EXPLICITLY SET - ATTEMPT LOAD CONFIG FROM S3")
+    load_from_s3 = True
+    #load_from_s3 = str(os.environ.get('LOAD_FROM_S3')).lower() in ['1', 'true']
+elif os.environ.get('SERVER_HAS_S3_AUTH') is not None:
+    logg.debug("SERVER_HAS_S3_AUTH SET - ATTEMPT LOAD CONFIG FROM S3")
+    load_from_s3 = True
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
 
 SECRET_BUCKET = os.environ.get("SECRETS_BUCKET")
 RESOURCE_BUCKET = os.environ.get("RESOURCE_BUCKET", 'sarafu-resources')
+if RESOURCE_BUCKET == '': 
+    RESOURCE_BUCKET = 'sarafu-resources'
+
 TEST_BUCKET = os.environ.get("TEST_BUCKET", 'sarafu-tests')
+if TEST_BUCKET == '': 
+    TEST_BUCKET = 'sarafu-tests'
 
 if load_from_s3:
     # Load config from S3 Bucket
