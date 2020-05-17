@@ -31,7 +31,7 @@ config_parser = configparser.ConfigParser()
 secrets_parser = configparser.ConfigParser()
 
 load_from_s3 = False
-server_has_s3_auth = False
+SERVER_HAS_S3_AUTH = False
 if os.environ.get('LOAD_FROM_S3') is not None:
     logg.debug("LOAD_FROM_S3 EXPLICITLY SET - ATTEMPT LOAD CONFIG FROM S3")
     load_from_s3 = True
@@ -39,7 +39,7 @@ if os.environ.get('LOAD_FROM_S3') is not None:
 elif os.environ.get('SERVER_HAS_S3_AUTH') is not None:
     logg.debug("SERVER_HAS_S3_AUTH SET - ATTEMPT LOAD CONFIG FROM S3")
     load_from_s3 = True
-    server_hash_s3_auth = True
+    SERVER_HAS_S3_AUTH = True
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
 
@@ -54,7 +54,7 @@ if TEST_BUCKET == '':
 
 if load_from_s3:
     # Load config from S3 Bucket
-    if server_has_s3_auth:
+    if SERVER_HAS_S3_AUTH:
         # The server itself has S3 Auth
         session = boto3.Session()
     #if os.environ.get('AWS_ACCESS_KEY_ID'):
