@@ -19,7 +19,6 @@ standard_user = partial(UserFactory, pin_hash=User.salt_hash_secret('0000'), fai
 
 exchange_token_state = partial(UssdSessionFactory, state="exchange_token")
 directory_listing_state = partial(UssdSessionFactory, state="directory_listing")
-exchange_rate_pin_authorization_state = partial(UssdSessionFactory, state="exchange_rate_pin_authorization")
 exchange_token_agent_number_entry_state = partial(UssdSessionFactory,
                                                               state="exchange_token_agent_number_entry")
 exchange_token_amount_entry_state = partial(UssdSessionFactory, state="exchange_token_amount_entry")

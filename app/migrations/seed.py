@@ -98,11 +98,6 @@ def create_ussd_menus():
         parent_id=start_menu.id
     )
     update_or_create_menu(
-        name='send_token_confirmation',
-        description='Send Token confirmation menu',
-        parent_id=start_menu.id
-    )
-    update_or_create_menu(
         name='directory_listing',
         description='Listing of Market place categories for a user to choose',
         parent_id=start_menu.id
@@ -257,11 +252,7 @@ def create_ussd_menus():
         description='Menu for exchanging tokens from agents',
         parent_id=start_menu.id
     )
-    update_or_create_menu(
-        name='exchange_rate_pin_authorization',
-        description='PIN entry for authorization to access exchange rate',
-        parent_id=exchange_token_menu.id
-    )
+
     update_or_create_menu(
         name='request_exchange_rate',
         description='Exchange menu',

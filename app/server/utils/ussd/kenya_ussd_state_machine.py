@@ -74,7 +74,6 @@ class KenyaUssdStateMachine(Machine):
         'directory_listing_other',
         # exchange token states
         'exchange_token',
-        # 'exchange_rate_pin_authorization',
         'exchange_token_agent_number_entry',
         'exchange_token_amount_entry',
         'exchange_token_pin_authorization',
@@ -999,21 +998,6 @@ class KenyaUssdStateMachine(Machine):
              'dest': 'exit_invalid_menu_option'}
         ]
         self.add_transitions(exchange_token_transitions)
-
-        # DEPRECATED - exchange rate currently given without requiring pin
-        # event: exchange_rate_pin_authorization transitions
-        exchange_rate_pin_authorization_transitions = [
-            {'trigger': 'feed_char',
-             'source': 'exchange_rate_pin_authorization',
-             'dest': 'complete',
-             'conditions': 'is_authorized_pin',
-             'after': 'fetch_user_exchange_rate'},
-            {'trigger': 'feed_char',
-             'source': 'exchange_rate_pin_authorization',
-             'dest': 'exit_pin_blocked',
-             'conditions': 'is_blocked_pin'}
-        ]
-        self.add_transitions(exchange_rate_pin_authorization_transitions)
 
         # event: exchange_token_agent_number_entry transitions
         exchange_token_agent_number_entry_transitions = [
