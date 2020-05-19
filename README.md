@@ -4,9 +4,7 @@
 
 ---
 
-[![CircleCI](https://circleci.com/gh/teamsempo/SempoBlockchain.svg?style=shield)](https://circleci.com/gh/teamsempo/SempoBlockchain)
-[![GitHub](https://img.shields.io/github/license/teamsempo/sempoblockchain)](LICENSE)
-[![Codecov](https://img.shields.io/codecov/c/github/teamsempo/SempoBlockchain)](https://codecov.io/gh/teamsempo/SempoBlockchain)
+[![pipeline status](https://gitlab.com/grassrootseconomics/cic-platform-temp/badges/master/pipeline.svg)](https://gitlab.com/grassrootseconomics/cic-platform-temp/-/commits/master)
 
 Sempo Admin Dashboard and crypto financial inclusion infrastructure with USSD, Android and NFC Payments
 

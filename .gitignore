@@ -49,3 +49,4 @@ eth_worker/celerybeat.pid
 
 .envrc
 **/.terraform/
+**/result/
