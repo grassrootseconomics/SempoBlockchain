@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-apt-get update
-apt-get install -y gcc g++ libffi-dev libstdc++-6-dev python3-dev musl-dev libssl-dev libmysqlclient-dev
-apt-get remove python2.7
+sudo apt-get update
+sudo apt-get install -y gcc g++ libffi-dev libstdc++-6-dev python3-dev python3-pip musl-dev libssl-dev libmysqlclient-dev
+sudo apt-get remove python -y
+#echo 'alias python=python3\nalias pip=pip3' >> /home/vagrant/.bash_aliases
 curl -L https://nixos.org/nix/install | sh
 . /home/vagrant/.nix-profile/etc/profile.d/nix.sh
 nix-channel --add https://nixos.org/channels/nixos-20.03 nixpkgs

@@ -3,8 +3,10 @@
 set -ex
 
 source .envrc
+alias python=python3
+alias pip=pip3
 
-[ -d '../test' ] && rm -R ../test
+[ -d '../test' ] && rm -Rf ../test
 git clone . ../test
 pushd ../test
 
