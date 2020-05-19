@@ -7,7 +7,7 @@ image: $REGISTRY_DEVELOPMENT/build-env:latest
 variables:
   AWS_REGION: eu-central-1
   GIT_SUBMODULE_STRATEGY: recursive
-  # DOCKER_HOST: tcp://localhost:2375/
+  DOCKER_HOST: tcp://localhost:2375/
   NODE_OPTIONS: --max-old-space-size=4096
   TOOL_NODE_FLAGS: --max-old-space-size=4096
 
