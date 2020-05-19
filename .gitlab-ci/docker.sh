@@ -18,16 +18,15 @@ build_image() {
 
 push_image() {
   eval $(aws ecr get-login --no-include-email --region $AWS_REGION);
-  ensure_repo_exists "$CI_PROJECT_NAME"
 
-  docker tag server:latest ${CI_PROJECT_NAME}:server_${CI_COMMIT_SHA}
-  docker push ${CI_PROJECT_NAME}:server_${CI_COMMIT_SHA}
-  docker tag proxy:latest ${CI_PROJECT_NAME}:proxy_${CI_COMMIT_SHA}
-  docker push ${CI_PROJECT_NAME}:proxy_${CI_COMMIT_SHA}
-  docker tag eth_worker:latest ${CI_PROJECT_NAME}:eth_worker_${CI_COMMIT_SHA}
-  docker push ${CI_PROJECT_NAME}:eth_worker_${CI_COMMIT_SHA}
-  docker tag pgbouncer:latest ${CI_PROJECT_NAME}:pgbouncer_${CI_COMMIT_SHA}
-  docker push ${CI_PROJECT_NAME}:pgbouncer_${CI_COMMIT_SHA}
+  docker tag server:latest ${REGISTRY}:server_${CI_COMMIT_SHA}
+  docker push ${REGISTRY}:server_${CI_COMMIT_SHA}
+  docker tag proxy:latest ${REGISTRY}:proxy_${CI_COMMIT_SHA}
+  docker push ${REGISTRY}:proxy_${CI_COMMIT_SHA}
+  docker tag eth_worker:latest ${REGISTRY}:eth_worker_${CI_COMMIT_SHA}
+  docker push ${REGISTRY}:eth_worker_${CI_COMMIT_SHA}
+  docker tag pgbouncer:latest ${REGISTRY}:pgbouncer_${CI_COMMIT_SHA}
+  docker push ${REGISTRY}:pgbouncer_${CI_COMMIT_SHA}
 }
 
 if [ $BRANCH_NAME == "master" ]
