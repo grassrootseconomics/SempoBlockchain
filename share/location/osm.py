@@ -22,7 +22,7 @@ from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPE
 
 def osm_valid_data(data : dict):
     for field in osm_extension_fields:
-        if not data.hasattr(field):
+        if data.get(field) == None:
             return False
     return True
 

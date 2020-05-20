@@ -10,6 +10,8 @@ import pytest
 import config
 from helpers.factories import UserFactory
 from server.utils.auth import get_complete_auth_token
+from share.models.location import Location
+from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger()
 
@@ -88,21 +90,13 @@ def test_add_location_by_name(
         'latitude': 18.4179638,
         'longitude': -95.1098723,
         }
-    child = {
-        'common_name': 'Monkey Island',
-        'latitude': 18.4119194,
-        'longitude': -95.0960522,
-        }
+    
     response = test_client.post(
         '/api/v2/geolocation/',
-         headers=dict(
+        headers=dict(
             Accept='application/json',
             ),
-         data=json.dumps(dict(
-            latitude=parent['latitude'],
-            longitude=parent['longitude'],
-            common_name=parent['common_name'],
-             )),
+        data=json.dumps(parent),
         content_type='application/json',
         follow_redirects=True,
         )
@@ -110,21 +104,32 @@ def test_add_location_by_name(
     assert response.status_code == 201
     logg.debug(response.json)
     parent_id = response.json['data']['location']['id']
+    child = {
+        'common_name': 'Monkey Island',
+        'latitude': 18.4119194,
+        'longitude': -95.0960522,
+        'parent_id': parent_id,
+        'osm': {
+            'place_id': 42,
+            'osm_id': 666,
+        },
+        }
     response = test_client.post(
         '/api/v2/geolocation/',
-         headers=dict(
+        headers=dict(
             Accept='application/json',
             ),
-         data=json.dumps(dict(
-            latitude=child['latitude'],
-            longitude=child['longitude'],
-            common_name=child['common_name'],
-            parent_id=parent_id,
-             )),
+        data=json.dumps(child),
         content_type='application/json',
         follow_redirects=True,
         )
 
     assert response.status_code == 201
-    logg.debug(response.json) 
 
+    child_id = response.json['data']['location']['id']
+    child_location = Location.query.get(child_id)
+
+    parent_location = child_location.parent
+    assert parent_location.id == parent_id
+
+    assert child_location.is_same_external_data(LocationExternalSourceEnum.OSM, child['osm'])

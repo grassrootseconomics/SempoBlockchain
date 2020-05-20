@@ -67,6 +67,8 @@ class LocationAPI(MethodView):
             }
             return make_response(jsonify(response_object)), 400
 
+        location = Location(common_name, latitude, longitude) 
+
         # if parent is given, check that it exists
         parent_location = None
         try:
@@ -78,10 +80,9 @@ class LocationAPI(MethodView):
                     'message': 'parent id {} does not match any objects'.format(parent_id),
                    }
                 return make_response(jsonify(response_object)), 400
+            location.set_parent(parent_location)
         except KeyError:
             pass
-
-        location = Location(common_name, latitude, longitude) 
 
         # if osm is given, check that the data is valid
         osm = post_data.get('osm')
@@ -90,12 +91,14 @@ class LocationAPI(MethodView):
                     'message': 'invalid osm extension data',
                    }
             return make_response(jsonify(response_object)), 400
-            location.add_external_data(LocationExternalSourceEnum.OSM, osm)
+        location.add_external_data(LocationExternalSourceEnum.OSM, osm)
 
+        # flush to database
         db.session.add(location)
         db.session.commit()
         db.session.flush()
 
+        # compile and send response
         response_object = {
                 'message': 'location successfully added',
                 'data': {
@@ -114,6 +117,8 @@ class LocationAPI(MethodView):
             response_object['data']['location']['osm']['osm_id'] = osm['osm_id'] 
 
         return make_response(jsonify(response_object)), 201
+
+
 
 geolocation_blueprint.add_url_rule(
         '/geolocation/<string:common_name>/',
