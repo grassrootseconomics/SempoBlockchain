@@ -1,5 +1,6 @@
 # standard imports
 import json
+import urllib
 
 # third party imports
 import pytest
@@ -61,12 +62,13 @@ def test_get_existing_location_by_name(
         new_locations,
         ):
 
+    common_name_urlencoded = urllib.parse.quote(new_locations['leaf'].common_name.encode('utf-8'))
     response = test_client.get(
-            '/api/v2/geolocation/Nice%20beach/',
+            '/api/v2/geolocation/{}/'.format(common_name_urlencoded),
              headers=dict(
                 Accept='application/json',
                 ),
             )
 
     assert response.status_code == 200
-    assert response.json['locations'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
+    assert response.json['local'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
