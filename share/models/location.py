@@ -247,6 +247,7 @@ class Location(db.Model):
         return l
 
 
+
     def __init__(self, common_name, latitude, longitude, parent=None, **kwargs):
         super(Location, self).__init__(**kwargs)
         self.common_name = common_name
@@ -254,3 +255,13 @@ class Location(db.Model):
         self.longitude = longitude
         if parent != None:
             self.set_parent(parent)
+
+
+    def __str__(self):
+        location_string = []
+        location = self
+        while location != None:
+            location_string.append(location.common_name)
+            location = location.parent
+        return ", ".join(location_string)
+

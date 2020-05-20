@@ -53,3 +53,20 @@ def test_get_legacy_location(
     assert response.json['lat'] == param_latitude
     assert response.json['lng'] == param_longitude
     assert response.json['location'] == param_location
+
+
+def test_get_existing_location_by_name(
+        test_client,
+        init_database,
+        new_locations,
+        ):
+
+    response = test_client.get(
+            '/api/v2/geolocation/Nice%20beach/',
+             headers=dict(
+                Accept='application/json',
+                ),
+            )
+
+    assert response.status_code == 200
+    assert response.json['locations'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
