@@ -42,7 +42,7 @@ def test_get_legacy_location(
     auth = get_complete_auth_token(authed_sempo_admin_user)
 
     response = test_client.get(
-            '/api/v2/geolocation/user/42/',
+            '/api/v2/geolocation/legacy/user/42/',
             headers=dict(
                 Authorization=auth,
                 Accept='application/json',

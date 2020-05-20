@@ -7,7 +7,7 @@ from server import db
 from server.models.user import User
 from server.utils.auth import requires_auth
 
-geolocation_ext_blueprint = Blueprint('geolocation_ext', __name__)
+geolocation_legacy_blueprint = Blueprint('v2_geolocation_legacy', __name__)
 
 class GetLegacyLocation(MethodView):
 
@@ -21,8 +21,8 @@ class GetLegacyLocation(MethodView):
                 }
         return make_response(jsonify(response_object)), 200
 
-geolocation_ext_blueprint.add_url_rule(
-        '/geolocation/user/<int:user_id>/',
-    view_func=GetLegacyLocation.as_view('geolocation_ext_user_view'),
+geolocation_legacy_blueprint.add_url_rule(
+        '/geolocation/legacy/user/<int:user_id>/',
+    view_func=GetLegacyLocation.as_view('v2_geolocation_legacy_user_view'),
     methods=['GET']
 )
