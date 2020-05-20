@@ -13,7 +13,7 @@ fake.add_provider(phone_number)
 @pytest.mark.parametrize("user_phone_accessor, phone, business_usage_name, referred_by, tier, status_code", [
     (lambda o: o.phone, None, 'Fuel/Energy', '+61401391419', 'superadmin', 400),
     (lambda o: o.phone, fake.msisdn(), 'Fuel/Energy', fake.msisdn(), 'superadmin', 200),
-    (lambda o: o.phone, fake.msisdn(), 'Food/Water', fake.msisdn(), 'view', 403)
+    (lambda o: o.phone, fake.msisdn(), 'Food/Water', fake.msisdn(), 'view-public', 403)
 ])
 def test_create_user(test_client, authed_sempo_admin_user, init_database, create_transfer_account_user, user_phone_accessor, phone,
                      business_usage_name, referred_by, tier, status_code):
@@ -68,7 +68,7 @@ def test_create_user(test_client, authed_sempo_admin_user, init_database, create
 
 
 @pytest.mark.parametrize("user_id_accessor, is_vendor, is_groupaccount, tier, status_code", [
-    (lambda o: o.id, False, False, 'subadmin', 403),
+    (lambda o: o.id, False, False, 'subadmin', 200),
     (lambda o: o.id, True, False, 'admin', 200),
     (lambda o: o.id, False, True, 'admin', 200),
     (lambda o: 1222103, False, False, 'admin', 404),

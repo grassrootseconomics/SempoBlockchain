@@ -6,7 +6,7 @@ ALLOWED_FILE_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 
 ALLOWED_SPREADSHEET_EXTENSIONS = {'xlsx', 'csv'}
 
-RANKED_ADMIN_TIERS = ['sempoadmin', 'superadmin', 'admin', 'subadmin', 'view']
+RANKED_ADMIN_TIERS = ['sempoadmin', 'superadmin', 'admin', 'subadmin', 'view-private', 'view-public']
 RANKED_VENDOR_TIERS = ['supervendor', 'vendor', 'cashier']
 RANKED_BENEFICIARY_TIERS = ['beneficiary']
 POSSIBLE_TOKEN_AGENTS = ['grassroots_token_agent']

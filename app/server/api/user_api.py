@@ -18,7 +18,7 @@ class UserAPI(MethodView):
     def get(self, user_id):
 
         can_see_full_details = AccessControl.has_suffient_role(
-            g.user.roles, {'ADMIN': 'admin'})
+            g.user.roles, {'ADMIN': 'view-private'})
 
         if not can_see_full_details:
             public_serial_number = request.args.get('public_serial_number')
@@ -136,7 +136,7 @@ class UserAPI(MethodView):
 
         return make_response(jsonify(response_object)), response_code
 
-    @requires_auth(allowed_roles={'ADMIN': 'admin'})
+    @requires_auth(allowed_roles={'ADMIN': 'subadmin'})
     def put(self, user_id):
         put_data = request.get_json()
         put_data['user_id'] = user_id
@@ -172,7 +172,7 @@ class UserAPI(MethodView):
 
 
 class ResetPinAPI(MethodView):
-    @requires_auth(allowed_roles={'ADMIN': 'admin'}, allowed_basic_auth_types=('external'))
+    @requires_auth(allowed_roles={'ADMIN': 'subadmin'}, allowed_basic_auth_types=('external'))
     def post(self, user_id):
 
         post_data = request.get_json()
