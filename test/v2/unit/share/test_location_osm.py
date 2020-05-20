@@ -10,7 +10,7 @@ import pytest
 # platform imports
 import config
 from server import db
-from server.models.location import Location
+from share.models.location import Location
 from share.location.osm import osm_resolve_name, osm_resolve_coordinates
 from share.location.enum import LocationExternalSourceEnum
 

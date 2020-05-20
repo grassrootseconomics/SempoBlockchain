@@ -6,7 +6,7 @@ import pytest
 
 # platform imports
 import config
-from helpers.factories import UserFactory, TransferUsageFactory, OrganisationFactory
+from helpers.factories import UserFactory
 from server.utils.auth import get_complete_auth_token
 
 @pytest.mark.parametrize('param_latitude, param_longitude, param_location', [
@@ -29,7 +29,7 @@ def test_get_legacy_location(
     admin = authed_sempo_admin_user
     admin.set_held_role('ADMIN', 'admin')
 
-    # create self signup user
+    # create user with legacy location information
     user = UserFactory(id=42,
         lat=param_latitude,
         lng=param_longitude,
