@@ -20,6 +20,11 @@ from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
 from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPES
 
 
+def osm_valid_data(data : dict):
+    for field in osm_extension_fields:
+        if not data.hasattr(field):
+            return False
+    return True
 
 def osm_get_detail(place_id : int):
 

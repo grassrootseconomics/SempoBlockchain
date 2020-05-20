@@ -1,6 +1,7 @@
 # standard imports
 import json
 import urllib
+import logging
 
 # third party imports
 import pytest
@@ -10,7 +11,9 @@ import config
 from helpers.factories import UserFactory
 from server.utils.auth import get_complete_auth_token
 
-@pytest.mark.parametrize('param_latitude, param_longitude, param_location', [
+logg = logging.getLogger()
+
+@pytest.mark.parametrize('param_latitude, param_longitude, param_common_name', [
     (18.4119194, -95.0960522, 'Monkey Island Catemaco'),
     ])
 def test_get_legacy_location(
@@ -20,7 +23,7 @@ def test_get_legacy_location(
         authed_sempo_admin_user,
         param_latitude,
         param_longitude,
-        param_location):
+        param_common_name):
 
     # create organisation
     organisation = create_organisation
@@ -34,7 +37,7 @@ def test_get_legacy_location(
     user = UserFactory(id=42,
         lat=param_latitude,
         lng=param_longitude,
-        _location=param_location,
+        _location=param_common_name,
         )
 
     user.add_user_to_organisation(organisation, False)
@@ -53,7 +56,7 @@ def test_get_legacy_location(
     assert response.status_code == 200
     assert response.json['lat'] == param_latitude
     assert response.json['lng'] == param_longitude
-    assert response.json['location'] == param_location
+    assert response.json['location'] == param_common_name
 
 
 def test_get_existing_location_by_name(
@@ -71,4 +74,57 @@ def test_get_existing_location_by_name(
             )
 
     assert response.status_code == 200
+    logg.debug('response json {}'.format(response.json))
     assert response.json['local'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
+
+
+def test_add_location_by_name(
+    test_client,
+    init_database,
+    ):
+
+    parent = {
+        'common_name': 'Catemaco',
+        'latitude': 18.4179638,
+        'longitude': -95.1098723,
+        }
+    child = {
+        'common_name': 'Monkey Island',
+        'latitude': 18.4119194,
+        'longitude': -95.0960522,
+        }
+    response = test_client.post(
+        '/api/v2/geolocation/',
+         headers=dict(
+            Accept='application/json',
+            ),
+         data=json.dumps(dict(
+            latitude=parent['latitude'],
+            longitude=parent['longitude'],
+            common_name=parent['common_name'],
+             )),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    assert response.status_code == 201
+    logg.debug(response.json)
+    parent_id = response.json['data']['location']['id']
+    response = test_client.post(
+        '/api/v2/geolocation/',
+         headers=dict(
+            Accept='application/json',
+            ),
+         data=json.dumps(dict(
+            latitude=child['latitude'],
+            longitude=child['longitude'],
+            common_name=child['common_name'],
+            parent_id=parent_id,
+             )),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    assert response.status_code == 201
+    logg.debug(response.json) 
+

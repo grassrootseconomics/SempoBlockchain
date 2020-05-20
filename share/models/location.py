@@ -7,6 +7,7 @@ ordered physical locations.
 # standard imports
 import hashlib
 import logging
+import json
 
 # framework imports
 from sqlalchemy.dialects.postgresql import JSON, JSONB
@@ -133,6 +134,9 @@ class LocationExternal(db.Model):
         self.external_reference = references_data
         self.location_id = location.id
 
+    def __repr__(self):
+        return '{} {}'.format(self.source, self.external_reference)
+
 
 class Location(db.Model):
     """SqlAlchemy model class representing a hierarchical relations between actual
@@ -245,6 +249,25 @@ class Location(db.Model):
             return None
         l = Location.query.get(r[0].location_id)
         return l
+
+
+    def get_custom(self, source_enum):
+        """Returns the extended reference of a location for the given type enum
+
+        Parameters
+        ----------
+        source_enum : enum
+            external source identifier
+
+        Returns
+        -------
+        external_reference : dict
+            the matching reference values
+
+        """
+        for external in self.location_external:
+            if external.source == source_enum.name:
+                return external.external_reference
 
 
 

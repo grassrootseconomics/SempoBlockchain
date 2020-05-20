@@ -49,6 +49,8 @@ def test_location_set_external(test_client, new_locations):
     assert not new_locations['top'].is_same_external_data(LocationExternalSourceEnum.OSM, ext_data_geonames)
     assert not new_locations['top'].is_same_external_data(LocationExternalSourceEnum.GEONAMES, ext_data_geonames)
 
+    assert new_locations['top'].get_custom(LocationExternalSourceEnum.OSM)['baz'] == ext_data_osm['baz']
+
 def test_user_location_link(test_client, new_locations):
     """
     GIVEN a location
