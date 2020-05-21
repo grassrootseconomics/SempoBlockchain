@@ -8,6 +8,7 @@ import pytest
 
 # platform imports
 import config
+from server import db
 from helpers.factories import UserFactory
 from server.utils.auth import get_complete_auth_token
 from share.models.location import Location
@@ -80,8 +81,42 @@ def test_get_existing_location_by_name(
     assert response.json['local'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
 
 
-def test_add_location_by_name(
-    test_client,
+def test_get_existing_location_by_external_id(
+        test_client,
+        init_database,
+        new_locations,
+        ):
+        ext_data_osm = {
+                'place_id': 42,
+                'osm_id': 666,
+                }
+        new_locations['leaf'].add_external_data(LocationExternalSourceEnum.OSM.value, ext_data_osm)
+        db.session.commit()
+
+        response = test_client.get(
+                '/api/v2/geolocation/{}/{}/'.format(LocationExternalSourceEnum.OSM.name, ext_data_osm['place_id']),
+                headers=dict(
+                    Accept='application/json',
+                    ),
+                )
+        assert response.status_code == 200
+
+        response = test_client.get(
+                '/api/v2/geolocation/{}/{}/'.format(LocationExternalSourceEnum.OSM.name, 43),
+                headers=dict(
+                    Accept='application/json',
+                    ),
+                )
+        assert response.status_code == 404
+
+        response = test_client.get(
+                '/api/v2/geolocation/FOO/22/',
+                headers=dict(
+                    Accept='application/json',
+                    ),
+                )
+        assert response.status_code == 400
+def test_add_location_by_name( test_client,
     init_database,
     ):
 
@@ -109,7 +144,7 @@ def test_add_location_by_name(
         'latitude': 18.4119194,
         'longitude': -95.0960522,
         'parent_id': parent_id,
-        'osm': {
+        LocationExternalSourceEnum.OSM.name: {
             'place_id': 42,
             'osm_id': 666,
         },
@@ -132,4 +167,4 @@ def test_add_location_by_name(
     parent_location = child_location.parent
     assert parent_location.id == parent_id
 
-    assert child_location.is_same_external_data(LocationExternalSourceEnum.OSM, child['osm'])
+    assert child_location.is_same_external_data(LocationExternalSourceEnum.OSM, child[LocationExternalSourceEnum.OSM.name])
