@@ -21,10 +21,13 @@ from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPE
 
 
 def valid_data(data : dict):
+    if not isinstance(dict, data):
+        return False
     for field in osm_extension_fields:
         if data.get(field) == None:
             return False
     return True
+
 
 def get_detail(place_id : int):
 
