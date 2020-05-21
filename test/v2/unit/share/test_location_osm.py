@@ -11,7 +11,7 @@ import pytest
 import config
 from server import db
 from share.models.location import Location
-from share.location.osm import osm_resolve_name, osm_resolve_coordinates
+from share.location import osm
 from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger(__file__)
@@ -74,7 +74,7 @@ def test_get_osm_cascade(test_client, init_database):
 
     cache = LocationCacheControl()
     q = 'mnarani'
-    location_data = osm_resolve_name(q, storage_check_callback=cache.have_osm_data)
+    location_data = osm.resolve_name(q, storage_check_callback=cache.have_osm_data)
     locations = store_osm_data(location_data, cache)
     
     leaf = locations[0]
@@ -100,7 +100,7 @@ def test_get_osm_cascade_coordinates(test_client, init_database):
     q = 'mnarani'
     latitude = -3.6536
     longitude = 39.8512
-    location_data = osm_resolve_coordinates(latitude, longitude, storage_check_callback=cache.have_osm_data)
+    location_data = osm.resolve_coordinates(latitude, longitude, storage_check_callback=cache.have_osm_data)
     locations = store_osm_data(location_data, cache)
 
     leaf = locations[0]

@@ -10,7 +10,7 @@ from server import db
 from server.utils.auth import requires_auth
 from share.models.location import Location
 from share.location.validate import valid_location_name, valid_coordinate
-from share.location.osm import osm_resolve_name, osm_valid_data
+from share.location import osm
 from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger()
@@ -40,6 +40,8 @@ class LocationAPI(MethodView):
                 'id': location.id,
                 'common_name': location.common_name,
                 'path': str(location),
+                'latitude': location.latitude,
+                'longitude': location.longitude,
                 }
                 )
 
@@ -86,7 +88,7 @@ class LocationAPI(MethodView):
 
         # if osm is given, check that the data is valid
         osm = post_data.get('osm')
-        if osm != None and not osm_valid_data(osm):
+        if osm != None and not osm.valid_data(osm):
             response_object = {
                     'message': 'invalid osm extension data',
                    }

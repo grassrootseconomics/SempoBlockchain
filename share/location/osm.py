@@ -20,13 +20,13 @@ from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
 from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPES
 
 
-def osm_valid_data(data : dict):
+def valid_data(data : dict):
     for field in osm_extension_fields:
         if data.get(field) == None:
             return False
     return True
 
-def osm_get_detail(place_id : int):
+def get_detail(place_id : int):
 
     url = 'https://nominatim.openstreetmap.org/details?format=json&linkedplaces=1&place_id=' 
 
@@ -40,7 +40,7 @@ def osm_get_detail(place_id : int):
     return response_json
 
 
-def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
+def get_place_hierarchy(place_id : int, storage_check_callback=None):
     """Retrieves details from the OSM HTTP endpoint of the matching place_id,
     and recursively retrieves its parent relation places. The results are returned as location dict objects
 
@@ -97,7 +97,7 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
                 locations.append(new_location)
                 break
        
-        response_json = osm_get_detail(next_place_id)
+        response_json = get_detail(next_place_id)
         current_place_id = next_place_id
         next_place_id = response_json['parent_place_id']
         if response_json['type'] == 'unclassified':
@@ -121,7 +121,7 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
     return locations
 
 
-def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
+def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
     """Searches the OSM HTTP endpoint for a location name. If a match is found
     the location hierarchy is built and committed to database.
 
@@ -175,7 +175,7 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
     # get related locations not already in database
     locations = []
     try:
-        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
+        locations = get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
         logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
     except requests.exceptions.Timeout as e:
@@ -190,7 +190,7 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
     return locations
 
 
-def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
+def resolve_coordinates(latitude, longitude, storage_check_callback=None):
   
     query = {
         'format': 'json',
@@ -226,12 +226,12 @@ def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
         return None
 
     # skip the first entry if it is unclassified
-    #response_json = osm_get_detail
+    #response_json = get_detail
 
     # get related locations not already in database
     locations = []
     try:
-        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
+        locations = get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
         logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
     except requests.exceptions.Timeout as e:
