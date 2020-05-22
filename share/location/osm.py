@@ -138,7 +138,7 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
     Returns
     -------
     location : Location
-        created / retrieved location object. If none is found, None is returned.
+        created / retrieved location objects.
     """
 
     # build osm query
@@ -153,15 +153,16 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
     query_string = urllib.parse.urlencode(query)
 
     # perform osm query
+    locations = []
     url = 'https://nominatim.openstreetmap.org/search?' + query_string
     try:
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
         logg.warning('request timeout to openstreetmap; {}:{}'.format(country, name))
-        return None
+        return locations
     if response.status_code != 200:
         logg.warning('failed request to openstreetmap; {}:{}'.format(country, name))
-        return None
+        return locations
 
     response_json = json.loads(response.text)
     logg.debug(response_json)
@@ -173,10 +174,9 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
             place_id = place['place_id']
     if place_id == 0:
         logg.debug('no suitable record found in openstreetmap for {}:{}'.format(country, name))
-        return None
+        return locations
 
     # get related locations not already in database
-    locations = []
     try:
         locations = get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
