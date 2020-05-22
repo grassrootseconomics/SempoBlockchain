@@ -102,13 +102,14 @@ class LocationAPI(MethodView):
         common_name = path_parts[0]
         locations = Location.query.filter(Location.common_name==common_name).all()
         valid_locations = []
+        valid = True
         while len(locations) > 0:
             location = locations.pop(0)
             location_step = location
-            valid = True
             for part in path_parts:
                 if location_step.parent == None:
-                    valid = False
+                    if len(valid_locations) > 0:
+                        valid = False
                     break
                 # TODO: fuzzy match
                 if part != location_step.common_name:
@@ -124,7 +125,6 @@ class LocationAPI(MethodView):
                 }
             return make_response(jsonify(response_object)), 404
 
-        
         response_object = {
             'search_string': common_name,
             'locations': []
@@ -139,7 +139,6 @@ class LocationAPI(MethodView):
                 }
                 )
 
-        logg.debug('response object {}'.format(response_object))
         return make_response(jsonify(response_object)), 200
 
 
@@ -169,7 +168,6 @@ class LocationAPI(MethodView):
         parent_location = None
         try:
             parent_id = post_data['parent_id']
-            logg.debug('have parent id {}'.format(parent_id))
             parent_location = Location.query.get(parent_id)
             if parent_location == None:
                 response_object = {
@@ -188,7 +186,6 @@ class LocationAPI(MethodView):
                         'message': 'invalid osm extension data',
                        }
                 return make_response(jsonify(response_object)), 400
-            logg.debug('osm data {}'.format(osm_data))
             location.add_external_data(LocationExternalSourceEnum.OSM, osm_data)
 
         # flush to database
