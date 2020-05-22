@@ -45,14 +45,17 @@ class TokenProcessor(object):
         amount_dollars = rounded_dollars(amount)
         rounded_balance_dollars = rounded_dollars(balance)
 
+        user_details = user.user_details().replace('+254', '0')
+        other_user_details = other_user.user_details().replace('+254', '0')
         TokenProcessor.send_sms(user=user,
                                 message_key=message_key,
-                                amount=amount_dollars,
+                                amount=int(float(amount_dollars)),
                                 token_name=default_token(user).symbol,
-                                user_details=user.user_details(),
-                                other_user_details=other_user.user_details(),
+                                user_details=user_details,
+                                other_user_details=other_user_details,
                                 date=tx_time.strftime('%d/%m/%Y'),
-                                time=tx_time.strftime('%I:%M %p'), balance=rounded_balance_dollars)
+                                time=tx_time.strftime('%I:%M %p'),
+                                balance=int(float(rounded_balance_dollars)))
 
     @staticmethod
     def exchange_success_sms(message_key: str, user: User, other_user: User, own_amount: float, other_amount: float,
@@ -246,7 +249,7 @@ class TokenProcessor(object):
                     other_user=recipient,
                     amount=amount,
                     tx_time=sender_tx_time,
-                    balance=sender_balance)
+                    balance=int(float(sender_balance)))
 
                 TokenProcessor.send_success_sms(
                     message_key="send_token_recipient_sms",
@@ -254,7 +257,7 @@ class TokenProcessor(object):
                     other_user=sender,
                     amount=amount,
                     tx_time=recipient_tx_time,
-                    balance=recipient_balance)
+                    balance=int(float(recipient_balance)))
             else:
                 TokenProcessor.exchange_success_sms(
                     "exchange_token_sender_sms",
@@ -297,6 +300,7 @@ class TokenProcessor(object):
             # TODO: SLAP? all the others take input in cents
             TokenProcessor.send_sms(sender, "send_token_error_sms", amount=cents_to_dollars(amount),
                                     token_name=default_token(sender).name, recipient=recipient.user_details())
+            raise Exception(f'An error occurred: {e}')
 
     @staticmethod
     def exchange_token(sender: User, agent: User, amount: float):
