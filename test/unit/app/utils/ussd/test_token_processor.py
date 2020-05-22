@@ -103,8 +103,8 @@ def test_fetch_exchange_rate(mocker, test_client, init_database, initialised_blo
 
 @pytest.mark.parametrize("lang, token1_symbol, token2_symbol, recipient_balance, expected_send_msg, expected_receive_msg", [
     ("en", "SM1", "SM1", 31000,
-     "Successfully sent a payment of 10 SM1 to Joe Bar",
-     "Successfully received a payment of 10 SM1 from Bob Foo"),
+     "Successfully sent 10 SM1 to Joe Bar",
+     "Successfully received 10 SM1 from Bob Foo"),
     ("en", "SM1", "SM2", 31500,
      "sent a payment of 10.00 SM1 = 15.00 SM2",
      "received a payment of 15.00 SM2 = 10.00 SM1"),
