@@ -37,7 +37,6 @@ def store_osm_data(location_data, cache):
 
     locations = []
 
-    logg.debug('data {} count {}'.format(location_data, len(location_data)))
     for i in range(len(location_data)):
         location = None
         if cache.location != None:
@@ -51,11 +50,9 @@ def store_osm_data(location_data, cache):
                     )
             location.add_external_data(LocationExternalSourceEnum.OSM, location_data[i]['ext_data'])
         locations.append(location)
-        logg.debug('adding {}'.format(location))
     
     for i in range(len(locations)):
         location = locations[i]
-        logg.debug(location.location_external[0].external_reference)
         if location.location_external[0].external_reference['place_id'] == cache.place_id:
             break
         if i < len(locations)-1:
@@ -86,7 +83,6 @@ def test_get_osm_cascade(test_client, init_database):
 
     parent = parent.parent
     assert 'kenya' in parent.common_name.lower() 
-    logg.debug('leaf {} parent {}'.format(leaf, parent))
 
 
 def test_get_osm_cascade_coordinates(test_client, init_database):
@@ -112,5 +108,4 @@ def test_get_osm_cascade_coordinates(test_client, init_database):
 
     parent = parent.parent
     assert 'kenya' in parent.common_name.lower() 
-    logg.debug('leaf {} parent {}'.format(leaf, parent))
 

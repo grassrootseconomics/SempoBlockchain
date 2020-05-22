@@ -41,7 +41,6 @@ def test_location_set_external(test_client, new_locations):
 
     ext = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'foo', 'bar')
     assert ext != None
-    logg.debug(new_locations['top'])
     assert ext == new_locations['top']
 
     assert new_locations['top'].is_same_external_data(LocationExternalSourceEnum.OSM, ext_data_osm)

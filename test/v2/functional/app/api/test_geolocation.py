@@ -162,7 +162,6 @@ def test_add_location_by_name( test_client,
         )
 
     assert response.status_code == 201
-    logg.debug(response.json)
     parent_id = response.json['data']['location']['id']
     child = {
         'common_name': 'Monkey Island',
