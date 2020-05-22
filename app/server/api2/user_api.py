@@ -12,9 +12,16 @@ from server.utils.auth import requires_auth
 
 logg = logging.getLogger()
 
+
 class UserLocationAPI(MethodView):
+    """Handles location-related operations on user
+
+    Documentation is brief since it implmements standard flask blueprint interface
+    """
 
     def get(self, user_id):
+        """gets the stored location for the given user
+        """
         u = ExtendedUser.query.get(user_id)
         logg.debug('user {} -> {}'.format(user_id, u))
         #u = db.session.query(ExtendedUser).get(user_id)
@@ -33,6 +40,7 @@ class UserLocationAPI(MethodView):
             location = location.parent
 
         return make_response(jsonify(response_object)), 200
+
 
 user_blueprint = Blueprint('v2_user_geolocation', __name__)
 

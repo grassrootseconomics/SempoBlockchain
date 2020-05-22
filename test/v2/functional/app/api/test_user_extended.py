@@ -7,8 +7,11 @@ import pytest
 # platform imports
 import config
 from server import db
-from helpers.v2.factories import ExtendedUserFactory, LocationFactory
 from server.utils.auth import get_complete_auth_token
+
+# test imports
+from helpers.v2.factories import ExtendedUserFactory, LocationFactory
+
 
 def test_get_user_location(
         test_client,
@@ -18,6 +21,11 @@ def test_get_user_location(
         new_locations,
         create_temporary_extended_user,
         ):
+    """
+    GIVEN an extended user record
+    WHEN adding location to that user
+    THEN the location is retrievable from the user location http api endpoint
+    """
 
     # create organisation
     organisation = create_organisation

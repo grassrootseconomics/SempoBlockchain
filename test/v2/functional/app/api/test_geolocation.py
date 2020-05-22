@@ -27,6 +27,11 @@ def test_get_legacy_location(
         param_latitude,
         param_longitude,
         param_common_name):
+    """
+    GIVEN coordinates and a name
+    WHEN storing this to the legacy fields for location in db
+    THEN they are retrievable through the legacy location http api call
+    """
 
     # create organisation
     organisation = create_organisation
@@ -67,6 +72,11 @@ def test_get_existing_location_by_name(
         init_database,
         new_locations,
         ):
+    """
+    GIVEN a hierarchical location relation
+    WHEN querying the location through the http api
+    THEN a matching name and/or path returns the location
+    """
 
     # test leaf name matching
     common_name_urlencoded = urllib.parse.quote(new_locations['leaf'].common_name.encode('utf-8'))
@@ -111,6 +121,11 @@ def test_get_existing_location_by_external_id(
         init_database,
         new_locations,
         ):
+        """
+        GIVEN a hierarchical location relation with external metadata
+        WHEN querying custom location data lookup endpoint in http api
+        THEN the entry matching the metadata key/value pair is returned
+        """
         ext_data_osm = {
                 'place_id': 42,
                 'osm_id': 666,
@@ -144,6 +159,11 @@ def test_get_existing_location_by_external_id(
 def test_add_location_by_name( test_client,
     init_database,
     ):
+    """
+    GIVEN location data with and without external data
+    WHEN added to the database through http api
+    THEN the object is retrievable through db
+    """
 
     parent = {
         'common_name': 'Catemaco',

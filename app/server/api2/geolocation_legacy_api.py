@@ -9,10 +9,15 @@ from server.utils.auth import requires_auth
 
 geolocation_legacy_blueprint = Blueprint('v2_geolocation_legacy', __name__)
 
+
 class GetLegacyLocation(MethodView):
+    """Handles operations on the legacy location fields in the user table
+    """
 
     @requires_auth
     def get(self, user_id):
+        """Retrieves legacy location information for a user
+        """
         user = User.query.get(user_id)
         response_object = {
                 "lat": user.lat,
@@ -20,6 +25,7 @@ class GetLegacyLocation(MethodView):
                 "location": user._location,
                 }
         return make_response(jsonify(response_object)), 200
+
 
 geolocation_legacy_blueprint.add_url_rule(
         '/geolocation/legacy/user/<int:user_id>/',

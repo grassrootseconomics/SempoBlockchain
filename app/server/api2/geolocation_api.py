@@ -20,13 +20,19 @@ logg = logging.getLogger()
 geolocation_blueprint = Blueprint('v2_geolocation', __name__)
 
 
-def osm_storage_callback(place_id):
-    location = Location.get_by_custom('place_id', place_id)
-    return location
-
-
-# compiles a json api response from location object
 def location_to_response_object(location):
+    """Compiles a json api response from location object
+
+    Parameters
+    ----------
+    location : Location
+        a location object to transform
+
+    Returns
+    -------
+    response_object : dict
+        the http response formatted location object
+    """
     response_object = {
         'message': 'location successfully added',
         'data': {
@@ -49,16 +55,17 @@ def location_to_response_object(location):
         pass
 
     return response_object
-    #if osm_data != None:
-    #    response_object['data']['location'][LocationExternalSourceEnum.OSM.name]['place_id'] = osm_data['place_id'] 
-    #    response_object['data']['location'][LocationExternalSourceEnum.OSM.name]['osm_id'] = osm_data['osm_id'] 
-
 
 
 
 class LocationExternalAPI(MethodView):
+    """Handles requests that operate on external location references
 
+    Documentation is brief since it implmements standard flask blueprint interface
+    """
     def get(self, ext_type, ext_id):
+        """Returns the location entry matching an external reference type and its id
+        """
         if ext_type == LocationExternalSourceEnum.OSM.name:
             location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'place_id', ext_id)
             if location == None:
@@ -77,9 +84,15 @@ class LocationExternalAPI(MethodView):
 
 
 class LocationAPI(MethodView):
+    """Handles requests that operate on external location references
 
+    Documentation is brief since it implmements standard flask blueprint interface
+    """
+
+    # TODO: This method is too long and should be divided up for clarity
     def get(self, path_string):
-
+        """Returns the location entry matching the path string
+        """
         # split given path into array elements
         # validate that each part is a valid location name token
         path_parts = path.reverse_split(path_string)
@@ -142,7 +155,14 @@ class LocationAPI(MethodView):
         return make_response(jsonify(response_object)), 200
 
 
+
+    # TODO: This method is too long and should be divided up for clarity
     def post(self):
+        """Commits the given location entry to the database.
+
+        Will fail if the location name and path already exist, or if external reference already exists.
+        """
+
         # get the input data
         post_data = request.get_json()
         latitude = post_data.get('latitude')
