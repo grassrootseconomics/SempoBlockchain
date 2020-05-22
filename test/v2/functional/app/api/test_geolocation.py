@@ -78,7 +78,7 @@ def test_get_existing_location_by_name(
 
     assert response.status_code == 200
     logg.debug('response json {}'.format(response.json))
-    assert response.json['local'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
+    assert response.json['locations'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
 
 
 def test_get_existing_location_by_external_id(

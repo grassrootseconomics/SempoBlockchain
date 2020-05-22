@@ -1,5 +1,6 @@
 # standard imports
 import logging
+import os
 
 # third party imports
 from flask import Blueprint, request, make_response, jsonify
@@ -12,6 +13,7 @@ from share.models.location import Location
 from share.location.validate import valid_location_name, valid_coordinate
 from share.location import osm
 from share.location.enum import LocationExternalSourceEnum
+from share import path
 
 logg = logging.getLogger()
 
@@ -52,6 +54,8 @@ def location_to_response_object(location):
     #    response_object['data']['location'][LocationExternalSourceEnum.OSM.name]['osm_id'] = osm_data['osm_id'] 
 
 
+
+
 class LocationExternalAPI(MethodView):
 
     def get(self, ext_type, ext_id):
@@ -74,20 +78,59 @@ class LocationExternalAPI(MethodView):
 
 class LocationAPI(MethodView):
 
-    def get(self, common_name):
-        if not valid_location_name(common_name):
-            response_object = {
-                'message': 'Invalid location name: {}'.format(common_name)
-            }
-            return make_response(jsonify(response_object)), 400
+    def get(self, path_string):
 
+        # split given path into array elements
+        # validate that each part is a valid location name token
+        path_parts = path.reverse_split(path_string)
+        c = 0
+        for path_part in path_parts:
+            if path_part == '':
+                break
+            if valid_location_name(path_part):
+                c += 1
+        if c == 0:
+            if not valid_location_name(path_part):
+                response_object = {
+                    'message': 'Invalid location path: {}'.format(common_name)
+                }
+                return make_response(jsonify(response_object)), 400
+  
+
+        # if one element is found, and if a path with more than one element is given
+        # make sure all the elements in the hierarchy match
+        common_name = path_parts[0]
+        locations = Location.query.filter(Location.common_name==common_name).all()
+        valid_locations = []
+        while len(locations) > 0:
+            location = locations.pop(0)
+            location_step = location
+            valid = True
+            for part in path_parts:
+                if location_step.parent == None:
+                    valid = False
+                    break
+                # TODO: fuzzy match
+                if part != location_step.common_name:
+                    valid = False
+                    break
+                location_step = location_step.parent
+            if valid:
+                valid_locations.append(location)
+
+        if len(valid_locations) == 0:
+            response_object = {
+                    'message': 'Location path {} not found'.format(path_string),
+                }
+            return make_response(jsonify(response_object)), 404
+
+        
         response_object = {
             'search_string': common_name,
-            'local': [],
+            'locations': []
                 }
-        locations = Location.query.filter(Location.common_name==common_name)
-        for location in locations:
-            response_object['local'].append({
+        for location in valid_locations:
+            response_object['locations'].append({
                 'id': location.id,
                 'common_name': location.common_name,
                 'path': str(location),
@@ -159,19 +202,19 @@ class LocationAPI(MethodView):
 
 
 geolocation_blueprint.add_url_rule(
-        '/geolocation/<string:common_name>/',
+    '/geolocation/<path:path_string>',
     view_func=LocationAPI.as_view('v2_geolocation_local_view'),
     methods=['GET']
 )
 
 geolocation_blueprint.add_url_rule(
-        '/geolocation/<string:ext_type>/<int:ext_id>/',
+    '/geolocation/<string:ext_type>/<int:ext_id>/',
     view_func=LocationExternalAPI.as_view('v2_geolocation_local_external_view'),
     methods=['GET']
 )
 
 geolocation_blueprint.add_url_rule(
-        '/geolocation/',
+    '/geolocation/',
     view_func=LocationAPI.as_view('v2_geolocation_add_view'),
     methods=['POST']
 )

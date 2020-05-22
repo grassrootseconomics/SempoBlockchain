@@ -21,7 +21,7 @@ from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPE
 
 
 def valid_data(data : dict):
-    if not isinstance(dict, data):
+    if not isinstance(data, dict):
         return False
     for field in osm_extension_fields:
         if data.get(field) == None:
