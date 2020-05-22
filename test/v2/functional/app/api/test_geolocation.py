@@ -68,6 +68,7 @@ def test_get_existing_location_by_name(
         new_locations,
         ):
 
+    # test leaf name matching
     common_name_urlencoded = urllib.parse.quote(new_locations['leaf'].common_name.encode('utf-8'))
     response = test_client.get(
             '/api/v2/geolocation/{}/'.format(common_name_urlencoded),
@@ -75,10 +76,34 @@ def test_get_existing_location_by_name(
                 Accept='application/json',
                 ),
             )
-
     assert response.status_code == 200
-    logg.debug('response json {}'.format(response.json))
     assert response.json['locations'][0]['path'] == '{}, {}, {}'.format(new_locations['leaf'].common_name, new_locations['node'].common_name, new_locations['top'].common_name)
+
+    # test path matching
+    path_urlencoded = '{}/{}'.format(
+        urllib.parse.quote(new_locations['leaf'].common_name.encode('utf-8')),
+        urllib.parse.quote(new_locations['node'].common_name.encode('utf-8')),
+            )
+    response = test_client.get(
+            '/api/v2/geolocation/{}/'.format(path_urlencoded),
+             headers=dict(
+                Accept='application/json',
+                ),
+            )
+    assert response.status_code == 200
+
+    # test that path mismatch is caught
+    path_urlencoded = '{}/foo'.format(
+        urllib.parse.quote(new_locations['leaf'].common_name.encode('utf-8')),
+            )
+    response = test_client.get(
+            '/api/v2/geolocation/{}/'.format(path_urlencoded),
+             headers=dict(
+                Accept='application/json',
+                ),
+            )
+    assert response.status_code == 404 
+
 
 
 def test_get_existing_location_by_external_id(
