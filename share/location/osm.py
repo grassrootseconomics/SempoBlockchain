@@ -91,7 +91,7 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
         if storage_check_callback != None:
             r = storage_check_callback(next_place_id)
             if r != None:
-                new_location['name'] = r.common_name
+                new_location['common_name'] = r.common_name
                 new_location['latitude'] = r.latitude
                 new_location['longitude'] = r.longitude
                 new_location['ext_type'] = LocationExternalSourceEnum.OSM
@@ -109,7 +109,7 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
        
         # create new location object and add it to list 
         new_location = {
-                'name': response_json['names']['name'],
+                'common_name': response_json['names']['name'],
                 'latitude': response_json['centroid']['coordinates'][0],
                 'longitude': response_json['centroid']['coordinates'][1],
                 }

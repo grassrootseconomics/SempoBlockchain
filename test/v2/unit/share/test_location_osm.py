@@ -82,7 +82,7 @@ def store_osm_data(location_data, cache):
                 location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'place_id', location_data[i]['ext_data']['place_id'])
         if location == None:
             location = Location(
-                location_data[i]['name'],
+                location_data[i]['common_name'],
                 location_data[i]['latitude'],
                 location_data[i]['longitude'],
                     )
