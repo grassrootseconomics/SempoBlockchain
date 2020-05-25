@@ -53,7 +53,7 @@ class UserLocationAPI(MethodView):
             return make_response(jsonify({'message': 'invalid update data'})), 400
                 
         # TODO: load full user data and return that
-        return make_response(jsonify(request_data)), 200
+        return make_response(jsonify(request_data)), 204
 
 
 

@@ -103,5 +103,5 @@ def test_set_user_location(
             }),
        )
 
-    assert response.status_code == 200
+    assert response.status_code == 204
     assert user.full_location == new_locations['leaf']
