@@ -2,13 +2,14 @@
 import logging
 
 # third party imports
-from flask import Blueprint, make_response, jsonify
+from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 
 # platform imports
 from server import db
 from share.models.user import ExtendedUser
 from server.utils.auth import requires_auth
+from share import user as extended_user
 
 logg = logging.getLogger()
 
@@ -42,10 +43,24 @@ class UserLocationAPI(MethodView):
         return make_response(jsonify(response_object)), 200
 
 
+    def put(self, user_id):
+        request_data = request.get_json()
+        request_data['user_id'] = user_id
+
+        try:
+            extended_user.update(user_id, request_data)
+        except:
+            return make_response(jsonify({'message': 'invalid update data'})), 400
+                
+        # TODO: load full user data and return that
+        return make_response(jsonify(request_data)), 200
+
+
+
 user_blueprint = Blueprint('v2_user_geolocation', __name__)
 
 user_blueprint.add_url_rule(
         '/user/<int:user_id>/geolocation/',
         view_func=UserLocationAPI.as_view('v2_user_geo|ocation_view'),
-        methods=['GET'],
+        methods=['GET', 'PUT'],
         )
