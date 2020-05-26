@@ -3,8 +3,9 @@ import math
 
 from server.models.ussd import UssdMenu, UssdSession
 from server.models.user import User
-from server.utils.user import get_user_by_phone, default_token
+from server.utils.user import get_user_by_phone, default_token, default_transfer_account
 from server.utils.ussd.kenya_ussd_state_machine import KenyaUssdStateMachine, ITEMS_PER_MENU, USSD_MAX_LENGTH
+from server.utils.ussd.token_processor import TokenProcessor
 from server.utils.i18n import i18n_for
 from server.utils.credit_transfer import cents_to_dollars
 
@@ -167,6 +168,32 @@ class KenyaUssdProcessor:
                 other_user_details=other_user_details,
                 user_details=user_details
 
+            )
+        token_balances_dollars, token_exchanges = TokenProcessor._get_token_balances(user)
+        if menu.name == 'exit_user_balance':
+
+            return i18n_for(
+                user,
+                menu.display_key,
+                token_balances=token_balances_dollars
+            )
+
+        if menu.name == 'exit_user_exchange_balance':
+            return i18n_for(
+                user,
+                menu.display_key,
+                token_balances=token_balances_dollars,
+                token_exchanges=token_exchanges
+            )
+
+        if menu.name == 'exit_user_exchange_limit_balance':
+            default_limit = TokenProcessor.get_default_limit(user, default_token(user), default_transfer_account(user))
+            return i18n_for(
+                user,
+                menu.display_key,
+                token_balances=token_balances_dollars,
+                token_exchanges=token_exchanges,
+                limit_period=default_limit.time_period_days
             )
 
         if menu.name == 'exchange_token_confirmation':

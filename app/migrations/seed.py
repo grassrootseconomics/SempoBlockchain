@@ -352,6 +352,21 @@ def create_ussd_menus():
         description='The payment transaction has been made successfully.',
     )
 
+    update_or_create_menu(
+        name='exit_user_exchange_limit_balance',
+        description='The user\'s balances have been returned with daily exchange limit.'
+    )
+
+    update_or_create_menu(
+        name='exit_user_exchange_balance',
+        description='The user\'s balances have been returned with the user\'s exchange limits.'
+    )
+
+    update_or_create_menu(
+        name='exit_user_balance',
+        description='The user\'s balances have been returned.'
+    )
+
     print_section_conclusion('Done creating USSD Menus')
 
 

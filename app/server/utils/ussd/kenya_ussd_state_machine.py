@@ -16,10 +16,12 @@ from server import ussd_tasker
 from server.utils.phone import send_message
 from server.models.user import User, RegistrationMethodEnum
 from server.models.ussd import UssdSession
+from server.utils.ussd.token_processor import TokenProcessor
 from server.models.transfer_usage import TransferUsage
 from server.utils.i18n import i18n_for
 from server.utils.user import set_custom_attributes, change_initial_pin, change_current_pin, default_token, \
-    get_user_by_phone, transfer_usages_for_user, send_terms_message_if_required, attach_transfer_account_to_user
+    get_user_by_phone, transfer_usages_for_user, send_terms_message_if_required, attach_transfer_account_to_user, \
+    default_transfer_account
 from server.utils.credit_transfer import dollars_to_cents, cents_to_dollars
 from server.utils.phone import proccess_phone_number
 
@@ -96,6 +98,9 @@ class KenyaUssdStateMachine(Machine):
         'exit_invalid_exchange_amount',
         'exit_account_creation_prompt',
         'exit_successful_send_token',
+        'exit_user_balance',
+        'exit_user_exchange_balance',
+        'exit_user_exchange_limit_balance',
         State(name='complete', on_enter=['send_terms_to_user_if_required'])
     ]
 
@@ -442,6 +447,20 @@ class KenyaUssdStateMachine(Machine):
             self.send_sms(self.user.phone, "account_creation_error_sms")
             raise Exception('Account creation failed. Error: ', e)
 
+    def has_default_limit(self, user_input):
+        default_limit = TokenProcessor.get_default_limit(self.user,
+                                                         default_token(self.user),
+                                                         default_transfer_account(self.user))
+        if default_limit:
+            return True
+        return False
+
+    def has_token_exchanges(self, user_input):
+        token_balances_dollars, token_exchanges = TokenProcessor._get_token_balances(self.user)
+        if token_exchanges in ["\n", '']:
+            return True
+        return False
+
     def menu_one_selected(self, user_input):
         return user_input == '1'
 
@@ -757,14 +776,19 @@ class KenyaUssdStateMachine(Machine):
         balance_inquiry_pin_authorization_transitions = [
             {'trigger': 'feed_char',
              'source': 'balance_inquiry_pin_authorization',
-             'dest': 'complete',
-             'conditions': 'is_authorized_pin',
-             'after': 'inquire_balance'
+             'dest': 'exit_user_balance',
+             'conditions': ['is_authorized_pin', 'has_token_exchanges']
              },
             {'trigger': 'feed_char',
              'source': 'balance_inquiry_pin_authorization',
-             'dest': 'exit_pin_blocked',
-             'conditions': 'is_blocked_pin'}
+             'dest': 'exit_user_exchange_limit_balance',
+             'conditions': ['is_authorized_pin', 'has_default_limit']
+             },
+            {'trigger': 'feed_char',
+             'source': 'balance_inquiry_pin_authorization',
+             'dest': 'exit_user_exchange_balance',
+             'conditions': 'is_blocked_pin',
+             'unless': ['has_token_exchanges', 'has_default_limit']}
         ]
         self.add_transitions(balance_inquiry_pin_authorization_transitions)
 
