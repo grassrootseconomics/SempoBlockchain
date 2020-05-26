@@ -451,9 +451,7 @@ class KenyaUssdStateMachine(Machine):
         default_limit = TokenProcessor.get_default_limit(self.user,
                                                          default_token(self.user),
                                                          default_transfer_account(self.user))
-        if default_limit:
-            return True
-        return False
+        return default_limit is not None
 
     def has_token_exchanges(self, user_input):
         token_balances_dollars, token_exchanges = TokenProcessor._get_token_balances(self.user)
