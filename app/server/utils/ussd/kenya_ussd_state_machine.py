@@ -787,8 +787,12 @@ class KenyaUssdStateMachine(Machine):
             {'trigger': 'feed_char',
              'source': 'balance_inquiry_pin_authorization',
              'dest': 'exit_user_exchange_balance',
-             'conditions': 'is_blocked_pin',
-             'unless': ['has_token_exchanges', 'has_default_limit']}
+             'conditions': 'is_authorized_pin',
+             'unless': ['has_token_exchanges', 'has_default_limit']},
+            {'trigger': 'feed_char',
+             'source': 'balance_inquiry_pin_authorization',
+             'dest': 'exit_pin_blocked',
+             'conditions': 'is_blocked_pin'}
         ]
         self.add_transitions(balance_inquiry_pin_authorization_transitions)
 
