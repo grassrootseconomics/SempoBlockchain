@@ -168,22 +168,27 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
     logg.debug(response_json)
 
     # identify a suitable record among those returned
-    place_id = 0
     for place in response_json:
+        place_id = 0
         if place['type'] in VALID_OSM_ENTRY_TYPES:
             place_id = place['place_id']
-    if place_id == 0:
+        if place_id == 0:
+            continue
+
+        # get related locations not already in database
+        try:
+            location = get_place_hierarchy(place_id, storage_check_callback)
+        except LookupError as e:
+            logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
+        except requests.exceptions.Timeout as e:
+            logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
+
+        locations.append(location)
+    
+    if len(locations) == 0:
         logg.debug('no suitable record found in openstreetmap for {}:{}'.format(country, name))
         return locations
 
-    # get related locations not already in database
-    try:
-        locations = get_place_hierarchy(place_id, storage_check_callback)
-    except LookupError as e:
-        logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
-    except requests.exceptions.Timeout as e:
-        logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
-                 
 #    # set hierarchical relations and store in database
 #    for i in range(len(locations)-1):
 #        locations[i].set_parent(locations[i+1])

@@ -111,7 +111,8 @@ def test_get_osm_cascade(test_client, init_database):
     cache = LocationCacheControl()
     q = 'mnarani'
     q_countried = q + '  kenya'
-    location_data = osm.resolve_name(q_countried, storage_check_callback=cache.have_osm_data)
+    locations_data = osm.resolve_name(q_countried, storage_check_callback=cache.have_osm_data)
+    location_data = locations_data[0]
     locations = store_osm_data(location_data, cache)
     
     leaf = locations[0]
