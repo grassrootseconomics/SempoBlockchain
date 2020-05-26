@@ -110,7 +110,8 @@ def test_get_osm_cascade(test_client, init_database):
 
     cache = LocationCacheControl()
     q = 'mnarani'
-    location_data = osm.resolve_name(q, storage_check_callback=cache.have_osm_data)
+    q_countried = q + '  kenya'
+    location_data = osm.resolve_name(q_countried, storage_check_callback=cache.have_osm_data)
     locations = store_osm_data(location_data, cache)
     
     leaf = locations[0]
@@ -133,7 +134,7 @@ def test_get_osm_cascade_coordinates(test_client, init_database):
     """
 
     cache = LocationCacheControl()
-    q = 'mnarani'
+    r = 'mnarani'
     latitude = -3.6536
     longitude = 39.8512
     location_data = osm.resolve_coordinates(latitude, longitude, storage_check_callback=cache.have_osm_data)
@@ -141,7 +142,7 @@ def test_get_osm_cascade_coordinates(test_client, init_database):
 
     leaf = locations[0]
     assert leaf != None
-    assert leaf.common_name.lower() == q
+    assert leaf.common_name.lower() == r
 
     parent = leaf.parent
     assert parent.common_name.lower() == 'kilifi'

@@ -145,9 +145,9 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
     query = {
             'format': 'json',
             'dedupe': 1,
-            'country': country, 
             'q': name,
             }
+    
     if getattr(config, 'EXT_OSM_EMAIL', None):
         query['email'] = config.EXT_OSM_EMAIL
     query_string = urllib.parse.urlencode(query)
