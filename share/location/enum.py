@@ -1,6 +1,6 @@
 import enum
 
-osm_extension_fields = ['place_id', 'osm_id']
+osm_extension_fields = ['osm_id', 'class', 'osm_type']
 
 class LocationExternalSourceEnum(enum.Enum):
     OSM = 'OSM'

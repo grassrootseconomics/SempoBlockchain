@@ -189,8 +189,9 @@ def test_add_location_by_name( test_client,
         'longitude': -95.0960522,
         'parent_id': parent_id,
         LocationExternalSourceEnum.OSM.name: {
-            'place_id': 42,
+            'osm_type': 'node',
             'osm_id': 666,
+            'class': 'place',
         },
         }
     response = test_client.post(

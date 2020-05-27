@@ -10,14 +10,14 @@ import logging
 import json
 import sys
 
-logg = logging.getLogger(__file__)
-logg.debug(sys.path)
 # platform imports
 import config
 from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
 
 # local imports
 from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPES
+
+logg = logging.getLogger(__file__)
 
 
 def valid_data(data : dict):
@@ -29,7 +29,7 @@ def valid_data(data : dict):
     return True
 
 
-def get_detail(place_id : int):
+def get_unsafe_detail(place_id : int):
 
     url = 'https://nominatim.openstreetmap.org/details?format=json&linkedplaces=1&place_id=' 
 
@@ -100,7 +100,7 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
                 locations.append(new_location)
                 break
        
-        response_json = get_detail(next_place_id)
+        response_json = get_unsafe_detail(next_place_id)
         current_place_id = next_place_id
         next_place_id = response_json['parent_place_id']
         if response_json['type'] == 'unclassified':
@@ -115,7 +115,12 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
                 }
 
         for field in osm_extension_fields:
-            ext_data[field] = response_json[field]
+            # TODO: this workaround is needed until we do lookup call to get the info, in details the
+            # "class" identifier is for some reason called "category"
+            if field == 'class':
+                ext_data[field] = response_json['category']
+            else:
+                ext_data[field] = response_json[field]
 
         new_location['ext_type'] = LocationExternalSourceEnum.OSM
         new_location['ext_data'] = ext_data
@@ -143,6 +148,7 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
 
     # build osm query
     query = {
+            'addressdetails': 1,
             'format': 'json',
             'dedupe': 1,
             'q': name,
@@ -170,12 +176,15 @@ def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callbac
     # identify a suitable record among those returned
     for place in response_json:
         place_id = 0
-        if place['type'] in VALID_OSM_ENTRY_TYPES:
-            place_id = place['place_id']
-        if place_id == 0:
+        if place['address']['country_code'].upper() != country:
+            logg.debug('country mismatch; want {} got {}'.format(country, place['address']['country_code']))
             continue
+        if place['type'] not in VALID_OSM_ENTRY_TYPES:
+            continue
+        place_id = place['place_id']
 
         # get related locations not already in database
+        location = None
         try:
             location = get_place_hierarchy(place_id, storage_check_callback)
         except LookupError as e:
@@ -227,14 +236,10 @@ def resolve_coordinates(latitude, longitude, storage_check_callback=None):
     # identify a suitable record among those returned
     place_id = 0
     place = response_json
-    #if place['osm_type'] in VALID_OSM_ENTRY_TYPES:
     place_id = place['place_id']
     if place_id == None or place_id == 0:
         logg.debug('no suitable record found in openstreetmap for N{}/E{}'.format(latitude, longitude))
         return None
-
-    # skip the first entry if it is unclassified
-    #response_json = get_detail
 
     # get related locations not already in database
     locations = []

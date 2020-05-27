@@ -28,19 +28,19 @@ class LocationCacheControl:
         the location object corresponding to the existing record
     """
     def __init__(self):
-        self.place_id = 0
+        self.osm_id = 0
         self.location = None
 
 
-    def have_osm_data(self, place_id):
+    def have_osm_data(self, osm_id):
         """Callback function used in osm.resolve_name to check if a record with osm place_id already exists.
 
-        If a match is found, the place_id and location is stored in the object.
+        If a match is found, the osm_id and location is stored in the object.
 
         Parameters
         ----------
         place_id : int
-            osm place_id to check the database for
+            osm_id to check the database for
 
         Returns
         -------
@@ -49,9 +49,9 @@ class LocationCacheControl:
         """
         if self.location != None:
             raise RuntimeError('cached location already set')
-        self.location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'place_id', place_id)
+        self.location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'osm_id', osm_id)
         if self.location != None:
-            self.place_id = place_id
+            self.osm_id = osm_id
         return self.location
 
 
@@ -78,8 +78,8 @@ def store_osm_data(location_data, cache):
     for i in range(len(location_data)):
         location = None
         if cache.location != None:
-            if location_data[i]['ext_data']['place_id'] == cache.place_id:
-                location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'place_id', location_data[i]['ext_data']['place_id'])
+            if location_data[i]['ext_data']['osm_id'] == cache.osm_id:
+                location = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'osm_id', location_data[i]['ext_data']['osm_id'])
         if location == None:
             location = Location(
                 location_data[i]['common_name'],
@@ -91,7 +91,7 @@ def store_osm_data(location_data, cache):
     
     for i in range(len(locations)):
         location = locations[i]
-        if location.location_external[0].external_reference['place_id'] == cache.place_id:
+        if location.location_external[0].external_reference['osm_id'] == cache.osm_id:
             break
         if i < len(locations)-1:
             locations[i].set_parent(locations[i+1])
