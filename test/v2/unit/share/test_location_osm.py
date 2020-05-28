@@ -151,3 +151,19 @@ def test_get_osm_cascade_coordinates(test_client, init_database):
     parent = parent.parent
     assert 'kenya' in parent.common_name.lower() 
 
+
+def test_get_osm_id(test_client, init_database):
+    """
+    GIVEN coordinates
+    WHEN hierarchical matches exist in osm for that coordinates
+    THEN check that location and relations are correctly returned
+    """
+
+    cache = LocationCacheControl()
+    osm_id = 1396492751
+    location_data = osm.resolve_id(osm_id, storage_check_callback=cache.have_osm_data)
+    locations = store_osm_data(location_data, cache)
+
+    leaf = locations[0]
+    assert leaf != None
+    assert leaf.common_name.lower() == "banjat e benjës"

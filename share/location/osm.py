@@ -129,6 +129,55 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
     return locations
 
 
+
+def resolve_id(osm_id : int, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
+    query = {
+       'osmtype': 'N',
+       'osmid': osm_id,
+       'format': 'json',
+       'addressdetails': 1,
+       'class': 'place',
+        }
+
+    if getattr(config, 'EXT_OSM_EMAIL', None):
+        q['email'] = config.EXT_OSM_EMAIL
+    query_string = urllib.parse.urlencode(query)
+
+    # perform osm query
+    url = 'https://nominatim.openstreetmap.org/details?' + query_string
+    try:
+        response = requests.get(url, timeout=QUERY_TIMEOUT)
+    except requests.exceptions.Timeout:
+        logg.warning('request timeout to openstreetmap osmid query; {}:{}'.format(country, osm_id))
+        return None
+    if response.status_code != 200:
+        logg.warning('failed request to openstreetmap osmid query; {}:{}'.format(country, osm_id))
+        return None
+
+    response_json = json.loads(response.text)
+    logg.debug(response_json)
+
+    # identify a suitable record among those returned
+    locations = []
+    place_id = 0
+    place = response_json
+    place_id = place['place_id']
+    if place_id == None or place_id == 0:
+        logg.debug('no suitable record found in openstreetmap for osmid {}'.format(osm_id))
+        return locations
+
+    # get related locations not already in database
+    try:
+        locations = get_place_hierarchy(place_id, storage_check_callback)
+    except LookupError as e:
+        logg.warning('osm hierarchical osmid query for {}:{} failed (response): {}'.format(country, osm_id, e))
+    except requests.exceptions.Timeout as e:
+        logg.warning('osm hierarchical osmid query for {}:{} failed (timeout): {}'.format(country, osm_id, e))
+                 
+    return locations
+
+
+
 def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
     """Searches the OSM HTTP endpoint for a location name. If a match is found
     the location hierarchy is built and committed to database.
@@ -234,15 +283,15 @@ def resolve_coordinates(latitude, longitude, storage_check_callback=None):
     logg.debug(response_json)
 
     # identify a suitable record among those returned
+    locations = []
     place_id = 0
     place = response_json
     place_id = place['place_id']
     if place_id == None or place_id == 0:
         logg.debug('no suitable record found in openstreetmap for N{}/E{}'.format(latitude, longitude))
-        return None
+        return locations
 
     # get related locations not already in database
-    locations = []
     try:
         locations = get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
