@@ -110,8 +110,8 @@ def get_place_hierarchy(place_id : int, storage_check_callback=None):
         # create new location object and add it to list 
         new_location = {
                 'common_name': response_json['names']['name'],
-                'latitude': response_json['centroid']['coordinates'][0],
-                'longitude': response_json['centroid']['coordinates'][1],
+                'latitude': response_json['centroid']['coordinates'][1],
+                'longitude': response_json['centroid']['coordinates'][0],
                 }
 
         for field in osm_extension_fields:
