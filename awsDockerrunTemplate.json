@@ -129,21 +129,6 @@
           "value": 0
         }
       ]
-    },
-    {
-      "name": "ganache",
-      "image": "REPOSITORY_URI:ganache_TAG_SUFFIX",
-      "essential": true,
-      "memory": 128,
-      "links": ["app:app"],
-      "mountPoints": [],
-      "portMappings": [
-        {
-          "hostPort": 8545,
-          "containerPort": 8545
-        }
-      ],
-      "environment": []
     }
   ]
 }
