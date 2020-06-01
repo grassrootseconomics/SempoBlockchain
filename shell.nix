@@ -1,35 +1,27 @@
 with import <nixpkgs> { };
 
 let
-  packages = import ./nix/ganache/default.nix { };
+  python = pkgs.python36;
+  pythonPackages = python36Packages;
 in
 stdenv.mkDerivation {
-  name = "python";
-  buildInputs = [
-    packages.ganache-cli
-
-    python36
-    python36Packages.pip
-    python36Packages.setuptools
-    python36Packages.virtualenvwrapper
-    python36Packages.pandas
-    python36Packages.celery
-
-    nodejs-13_x
-    redis
+  name = "dev";
+  buildInputs = [ (import ./default.nix { inherit pkgs; }) ] ++ [
     redis-desktop-manager
-    postgresql_12
     pgadmin
+    python
+    pythonPackages.pip
+    pythonPackages.setuptools
+    pythonPackages.virtualenvwrapper
+    pythonPackages.pandas
     libmysqlclient
-    ncurses
-
-    terraform_0_12
   ];
   shellHook = "
+    export PYTHONPATH=`pwd`/venv/${python.sitePackages}/:$PYTHONPATH
     setup() {
       virtualenv venv
     }
-    install() {
+    pip-install() {
       cd app
       python3 -m pip install -r slow_requirements.txt
       python3 -m pip install -r requirements.txt
@@ -43,3 +35,6 @@ stdenv.mkDerivation {
     export SOURCE_DATE_EPOCH=315532800
   ";
 }
+
+# nix-build default.nix | cachix push sarafu-dev
+# cachix use sarafu-dev

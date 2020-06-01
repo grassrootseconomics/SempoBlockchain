@@ -107,8 +107,10 @@ services:
       DEPLOYMENT_NAME: "DOCKER_TEST"
 
   ganache:
-    image: "trufflesuite/ganache-cli:v6.7.0"
+    image: "trufflesuite/ganache-cli:v6.9.1"
     command: "-l 80000000 -i 42 ${GANACHE_ACCOUNT_COMMAND}"
+    environment:
+      GANACHE_ACCOUNT_COMMAND: $GANACHE_ACCOUNT_COMMAND
 #  beat:
 #    build:
 #      context: app/server

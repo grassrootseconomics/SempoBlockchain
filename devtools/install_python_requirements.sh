@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 cd ../app
 pip install -r slow_requirements.txt
