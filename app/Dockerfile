@@ -19,6 +19,8 @@ COPY ./config.py ./config_files/* /src/
 COPY ./init.py /src/
 ADD ./app/server /src/server
 ADD ./app/migrations /src/migrations
+ADD ./app/migrations/seed.py /src
+ADD ./app/migrations/dev_data.py /src
 ADD ./files /src/files
 ADD ./app/manage.py /src
 ADD ./app/RedisQueue.py /src

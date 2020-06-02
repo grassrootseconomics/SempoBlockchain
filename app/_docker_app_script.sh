@@ -28,6 +28,11 @@ if [ "$CONTAINER_MODE" = 'TEST' ]; then
      exit $ret
    fi
    bash <(curl -s https://codecov.io/bash) -cF python
+elif [ "$CONTAINER_MODE" = 'SEED' ]; then
+  echo seeding database
+  # python seed.py
+  # python dev_data.py
+  uwsgi --socket 0.0.0.0:9000 --protocol http  --processes 4 --enable-threads --module=server.wsgi:app --stats :3031 --stats-http
 else
   uwsgi --socket 0.0.0.0:9000 --protocol http  --processes 4 --enable-threads --module=server.wsgi:app --stats :3031 --stats-http
 fi
