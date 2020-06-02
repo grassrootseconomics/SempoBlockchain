@@ -135,6 +135,12 @@ def create_ussd_menus():
         parent_id=account_management_menu.id
     )
     update_or_create_menu(
+        name='mini_statement_inquiry_pin_authorization',
+        description='PIN authorization before mini-statement with balance is sent.'
+                    ' enquiry',
+        parent_id=account_management_menu.id
+    )
+    update_or_create_menu(
         name='choose_language',
         description='Choose default language',
         parent_id=account_management_menu.id

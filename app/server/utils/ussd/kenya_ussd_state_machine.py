@@ -22,6 +22,7 @@ from server.utils.user import set_custom_attributes, change_initial_pin, change_
     get_user_by_phone, transfer_usages_for_user, send_terms_message_if_required, attach_transfer_account_to_user
 from server.utils.credit_transfer import dollars_to_cents, cents_to_dollars
 from server.utils.phone import proccess_phone_number
+from server.utils.transfer_enums import TransferSubTypeEnum
 
 ITEMS_PER_MENU = 8
 USSD_MAX_LENGTH = 164
@@ -49,6 +50,7 @@ class KenyaUssdStateMachine(Machine):
         # account management states
         'account_management',
         'balance_inquiry_pin_authorization',
+        'mini_statement_inquiry_pin_authorization',
         'choose_language',
         'pin_change',
         'current_pin',
@@ -442,6 +444,64 @@ class KenyaUssdStateMachine(Machine):
             self.send_sms(self.user.phone, "account_creation_error_sms")
             raise Exception('Account creation failed. Error: ', e)
 
+    def process_mini_statement_request(self, user_input):
+        last_three_credit_sends = self.user.credit_sends[-3:]
+        last_three_credit_receives = self.user.credit_receives[-3:]
+        # get last 8 transactions
+        last_six_transactions = last_three_credit_sends + last_three_credit_receives
+        # order transactions by date
+        statement_transactions = sorted(last_six_transactions, key=lambda tx: tx.created)[-3:]
+        # build sms for statement
+        transaction_messages = []
+        message = ""
+        for transaction in statement_transactions:
+            tx_time = transaction.created
+            if transaction.transfer_subtype == TransferSubTypeEnum.AGENT_OUT:
+                message = i18n_for(user=self.user,
+                                   key="ussd.kenya.mini_statement_transaction_template.agent_out",
+                                   amount=int(float(cents_to_dollars(transaction.transfer_amount))),
+                                   date=tx_time.strftime('%d/%m/%Y'),
+                                   time=tx_time.strftime('%I:%M %p'))
+            elif transaction.transfer_subtype == TransferSubTypeEnum.DISBURSEMENT:
+                message = i18n_for(user=self.user,
+                                   key="ussd.kenya.mini_statement_transaction_template.disbursement",
+                                   amount=int(float(cents_to_dollars(transaction.transfer_amount))),
+                                   date=tx_time.strftime('%d/%m/%Y'),
+                                   time=tx_time.strftime('%I:%M %p'))
+            elif transaction.transfer_subtype == TransferSubTypeEnum.RECLAMATION:
+                message = i18n_for(user=self.user,
+                                   key="ussd.kenya.mini_statement_transaction_template.reclamation",
+                                   amount=int(float(cents_to_dollars(transaction.transfer_amount))),
+                                   date=tx_time.strftime('%d/%m/%Y'),
+                                   time=tx_time.strftime('%I:%M %p'))
+            elif transaction.transfer_subtype == TransferSubTypeEnum.STANDARD and \
+                    transaction.sender_user_id != self.user.id:
+                sender_phone = User.query.get(transaction.sender_user_id).phone
+                message = i18n_for(user=self.user,
+                                   key="ussd.kenya.mini_statement_transaction_template.receive",
+                                   amount=int(float(cents_to_dollars(transaction.transfer_amount))),
+                                   date=tx_time.strftime('%d/%m/%Y'),
+                                   time=tx_time.strftime('%I:%M %p'),
+                                   sender=sender_phone.replace('+254', '0'))
+            elif transaction.transfer_subtype == TransferSubTypeEnum.STANDARD and \
+                    transaction.sender_user_id == self.user.id:
+                recipient_phone = User.query.get(transaction.recipient_user_id).phone
+                message = i18n_for(user=self.user,
+                                   key="ussd.kenya.mini_statement_transaction_template.send",
+                                   amount=int(float(cents_to_dollars(transaction.transfer_amount))),
+                                   date=tx_time.strftime('%d/%m/%Y'),
+                                   time=tx_time.strftime('%I:%M %p'),
+                                   recipient=recipient_phone.replace('+254', '0'))
+            transaction_messages.append(message)
+        # get user balance
+        transfer_account_balance = self.user.default_transfer_account.balance
+        self.send_sms(self.user.phone,
+                      message_key="balance_mini_statement_sms",
+                      user_phone=self.user.phone.replace('+254', '0'),
+                      user_balance=int(float(cents_to_dollars(transfer_account_balance))),
+                      token_name=default_token(self.user).symbol,
+                      transactions='\n'.join(transaction_messages))
+
     def menu_one_selected(self, user_input):
         return user_input == '1'
 
@@ -456,6 +516,9 @@ class KenyaUssdStateMachine(Machine):
 
     def menu_five_selected(self, user_input):
         return user_input == '5'
+
+    def menu_six_selected(self, user_input):
+        return user_input == '6'
 
     def menu_nine_selected(self, user_input):
         return user_input == '9'
@@ -695,12 +758,16 @@ class KenyaUssdStateMachine(Machine):
              'conditions': 'menu_three_selected'},
             {'trigger': 'feed_char',
              'source': 'account_management',
-             'dest': 'current_pin',
+             'dest': 'mini_statement_inquiry_pin_authorization',
              'conditions': 'menu_four_selected'},
             {'trigger': 'feed_char',
              'source': 'account_management',
-             'dest': 'opt_out_of_market_place_pin_authorization',
+             'dest': 'current_pin',
              'conditions': 'menu_five_selected'},
+            {'trigger': 'feed_char',
+             'source': 'account_management',
+             'dest': 'opt_out_of_market_place_pin_authorization',
+             'conditions': 'menu_six_selected'},
             {'trigger': 'feed_char',
              'source': 'account_management',
              'dest': 'exit_invalid_menu_option'}
@@ -767,6 +834,21 @@ class KenyaUssdStateMachine(Machine):
              'conditions': 'is_blocked_pin'}
         ]
         self.add_transitions(balance_inquiry_pin_authorization_transitions)
+
+        # event: mini_statement_inquiry_pin_authorization transitions
+        mini_statement_inquiry_pin_authorization_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'mini_statement_inquiry_pin_authorization',
+             'dest': 'complete',
+             'conditions': 'is_authorized_pin',
+             'after': 'process_mini_statement_request'
+             },
+            {'trigger': 'feed_char',
+             'source': 'mini_statement_inquiry_pin_authorization',
+             'dest': 'exit_pin_blocked',
+             'conditions': 'is_blocked_pin'}
+        ]
+        self.add_transitions(mini_statement_inquiry_pin_authorization_transitions)
 
         # event: current_pin transitions
         current_pin_transitions = [
