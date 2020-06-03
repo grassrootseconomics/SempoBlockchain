@@ -206,12 +206,25 @@ class LocationAPI(MethodView):
                         'message': 'invalid osm extension data',
                        }
                 return make_response(jsonify(response_object)), 400
-            location.add_external_data(LocationExternalSourceEnum.OSM, osm_data)
+            try:
+                location.add_external_data(LocationExternalSourceEnum.OSM, osm_data)
+            except Exception as e:
+                response_object = {
+                    'message': 'add external data failed: {}'.format(e),
+                   }
+                return make_response(jsonify(response_object)), 500
+
 
         # flush to database
-        db.session.add(location)
-        db.session.commit()
-        db.session.flush()
+        try:
+            db.session.add(location)
+            db.session.commit()
+            db.session.flush()
+        except Exception as e:
+            response_object = {
+                'message': 'add new location failed: {}'.format(e),
+               }
+            return make_response(jsonify(response_object)), 500
 
         response_object = location_to_response_object(location)
         return make_response(jsonify(response_object)), 201

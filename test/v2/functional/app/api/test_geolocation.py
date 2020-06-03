@@ -156,6 +156,8 @@ def test_get_existing_location_by_external_id(
                     ),
                 )
         assert response.status_code == 400
+
+
 def test_add_location_by_name( test_client,
     init_database,
     ):
@@ -213,3 +215,61 @@ def test_add_location_by_name( test_client,
     assert parent_location.id == parent_id
 
     assert child_location.is_same_external_data(LocationExternalSourceEnum.OSM, child[LocationExternalSourceEnum.OSM.name])
+
+
+def test_add_location_fail_duplicate(
+        test_client,
+        init_database
+        ):
+
+    child = {
+        'common_name': 'Monkey Island',
+        'latitude': 18.4119194,
+        'longitude': -95.0960522,
+        }
+    child_ext = {
+            'osm_type': 'node',
+            'osm_id': 666,
+            'class': 'place',
+        }
+
+    response = test_client.post(
+        '/api/v2/geolocation/',
+        headers=dict(
+            Accept='application/json',
+            ),
+        data=json.dumps(child),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    assert response.status_code == 201
+
+    response = test_client.post(
+        '/api/v2/geolocation/',
+        headers=dict(
+            Accept='application/json',
+            ),
+        data=json.dumps(child),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    assert response.status_code == 500
+
+    child['common_name'] = 'Monkey Island 2'
+    child[LocationExternalSourceEnum.OSM.name] = ehild_ext
+
+    response = test_client.post(
+        '/api/v2/geolocation/',
+        headers=dict(
+            Accept='application/json',
+            ),
+        data=json.dumps(child),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    assert response.status_code == 500
+
+
