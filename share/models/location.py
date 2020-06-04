@@ -174,6 +174,7 @@ class Location(db.Model):
     __tablename__ = 'location'
 
     id = db.Column(db.Integer, primary_key=True)
+    __table_args__ = (db.UniqueConstraint('common_name', 'parent_id', name='location_path_unique_idx'),)
     common_name = db.Column(db.String())
     latitude = db.Column(db.Numeric)
     longitude = db.Column(db.Numeric)

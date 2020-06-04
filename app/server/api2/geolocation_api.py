@@ -197,6 +197,11 @@ class LocationAPI(MethodView):
             location.set_parent(parent_location)
         except KeyError:
             pass
+        except Exception as e:
+            response_object = {
+                'message': 'add new location failed: {}'.format(e),
+               }
+            return make_response(jsonify(response_object)), 500
 
         # if osm is given, check that the data is valid
         osm_data = post_data.get(LocationExternalSourceEnum.OSM.name)
@@ -214,17 +219,11 @@ class LocationAPI(MethodView):
                    }
                 return make_response(jsonify(response_object)), 500
 
-
         # flush to database
-        try:
-            db.session.add(location)
-            db.session.commit()
-            db.session.flush()
-        except Exception as e:
-            response_object = {
-                'message': 'add new location failed: {}'.format(e),
-               }
-            return make_response(jsonify(response_object)), 500
+        db.session.add(location)
+        db.session.commit()
+        db.session.flush()
+     
 
         response_object = location_to_response_object(location)
         return make_response(jsonify(response_object)), 201

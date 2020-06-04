@@ -222,10 +222,29 @@ def test_add_location_fail_duplicate(
         init_database
         ):
 
+    parent = {
+        'common_name': 'Catemaco',
+        'latitude': 18.4179638,
+        'longitude': -95.1098723,
+        }
+ 
+    response = test_client.post(
+        '/api/v2/geolocation/',
+        headers=dict(
+            Accept='application/json',
+            ),
+        data=json.dumps(parent),
+        content_type='application/json',
+        follow_redirects=True,
+        )
+
+    parent_id = response.json['data']['location']['id']
+
     child = {
         'common_name': 'Monkey Island',
         'latitude': 18.4119194,
         'longitude': -95.0960522,
+        'parent_id': parent_id,
         }
     child_ext = {
             'osm_type': 'node',
@@ -258,7 +277,7 @@ def test_add_location_fail_duplicate(
     assert response.status_code == 500
 
     child['common_name'] = 'Monkey Island 2'
-    child[LocationExternalSourceEnum.OSM.name] = ehild_ext
+    child[LocationExternalSourceEnum.OSM.name] = child_ext
 
     response = test_client.post(
         '/api/v2/geolocation/',
