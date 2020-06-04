@@ -33,7 +33,6 @@ opt_out_of_market_place_pin_authorization_state = partial(UssdSessionFactory,
                                                           state="opt_out_of_market_place_pin_authorization")
 exchange_token_pin_authorization_state = partial(UssdSessionFactory, state="exchange_token_pin_authorization")
 exchange_rate_pin_authorization_state = partial(UssdSessionFactory, state="exchange_rate_pin_authorization")
-balance_inquiry_pin_authorization_state = partial(UssdSessionFactory, state="balance_inquiry_pin_authorization")
 mini_statement_inquiry_pin_authorization_state = partial(UssdSessionFactory,
                                                          state="mini_statement_inquiry_pin_authorization")
 
@@ -81,12 +80,6 @@ def test_kenya_state_machine(test_client, init_database, user_factory, session_f
      (mini_statement_inquiry_pin_authorization_state, pin_blocked_user, "1212", "exit_pin_blocked", 3, 3),
      (mini_statement_inquiry_pin_authorization_state, standard_user, "1212", "mini_statement_inquiry_pin_authorization", 1, 2),
      (mini_statement_inquiry_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
-     # balance inquiry pin auth combinations
-     (balance_inquiry_pin_authorization_state, pin_blocked_user, "1212", "exit_pin_blocked", 3, 3),
-     (balance_inquiry_pin_authorization_state, standard_user, "1212", "balance_inquiry_pin_authorization", 1, 2),
-     (balance_inquiry_pin_authorization_state, standard_user, "0000", "complete", 1, 0),
-     (balance_inquiry_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
-     (balance_inquiry_pin_authorization_state, standard_user, "0000", "complete", 2, 0),
      # exchange token pin auth combinations
      (exchange_token_pin_authorization_state, pin_blocked_user, "1111", "exit_pin_blocked", 3, 3),
      (exchange_token_pin_authorization_state, standard_user, "1212", "exchange_token_pin_authorization", 1, 2),

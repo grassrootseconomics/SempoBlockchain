@@ -14,16 +14,6 @@ standard_user = partial(UserFactory)
 
 
 @pytest.mark.parametrize("menu_name, language, expecteds, real_at_idx, length, unexpected, menu_nr", [
-    ("send_token_reason", "en", ['\n1. Education\n2. Health', "9."], 0, 12, "10.", 0),
-    ("send_token_reason", "sw", ['\n1. Elimu\n2. Afya', "9."], 0, 12, "10.", 0),
-    ("send_token_reason", None, ['\n1. Education\n2. Health', "9."], 0, 12, "10.", 0),
-    # first
-    ("send_token_reason_other", "en", ['\n1. Education\n2. Health', "9."], 0, 12, "10.", 0),
-    # last
-    ("send_token_reason_other", "en", ['\n1. Education\n2. Health', "10."], 8, 12, "9.", 1),
-    ("send_token_reason_other", "sw", ['\n1. Elimu\n2. Afya', "10."], 8, 12, "9.", 1),
-    # middle
-    ("send_token_reason_other", "en", ['\n1. Education\n2. Health', "9.", "10."], 8, 20, None, 1),
     ("directory_listing", "en", ['\n1. Education\n2. Health', "9."], 0, 12, "10.", 0),
     ("directory_listing", "sw", ['\n1. Elimu\n2. Afya', "9."], 0, 12, "10.", 0),
     ("directory_listing", None, ['\n1. Education\n2. Health', "9."], 0, 12, "10.", 0),
