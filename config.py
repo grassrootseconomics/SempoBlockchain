@@ -221,6 +221,7 @@ logg.info('Eth database URI: ' + CENSORED_ETH_URI)
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+AWS_SES_EMAIL = common_secrets_parser['AWS']['ses_email']
 AWS_SES_KEY_ID = common_secrets_parser['AWS']['ses_key_id']
 AWS_SES_SECRET = common_secrets_parser['AWS']['ses_secret']
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')

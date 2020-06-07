@@ -108,7 +108,7 @@ def get_email_template(TEMPLATE_FILE):
 
 @executor.job
 def ses_email_handler(recipient, subject, textbody, htmlbody = None):
-    sender = "admin@withsempo.com"
+    sender = current_app.config['AWS_SES_EMAIL']
 
     awsregion = "us-west-2"
     htmlbody = htmlbody or textbody
@@ -125,9 +125,9 @@ def ses_email_handler(recipient, subject, textbody, htmlbody = None):
 
         # Create a new SES resource and specify a region.
         client = boto3.client('ses',
-                            aws_access_key_id= current_app.config['AWS_SES_KEY_ID'],
+                            aws_access_key_id=current_app.config['AWS_SES_KEY_ID'],
                             aws_secret_access_key=current_app.config['AWS_SES_SECRET'],
-                              region_name=awsregion)
+                            region_name=awsregion)
 
         # Try to send the email.
         try:
