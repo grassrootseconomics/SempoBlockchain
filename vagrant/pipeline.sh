@@ -3,6 +3,8 @@
 set -ex
 
 source .envrc
+export CONTAINER_MODE=TEST
+
 alias python=python3
 alias pip=pip3
 
