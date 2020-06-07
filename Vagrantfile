@@ -54,7 +54,7 @@ Vagrant.configure("2") do |config|
   #   vb.gui = true
   #
      # Customize the amount of memory on the VM:
-     vb.memory = "4096"
+     # vb.memory = "4096"
    end
   #
   # View the documentation for the provider you are using for more
@@ -70,9 +70,7 @@ Vagrant.configure("2") do |config|
       "CONTAINER_MODE" => "$CONTAINER_MODE",
       "AWS_ACCESS_KEY_ID" => "$AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY" => "$AWS_SECRET_ACCESS_KEY",
-      "AWS_REGION" => "$AWS_REGION",
-      # "MASTER_WALLET_PK" => "$MASTER_WALLET_PK",
-      "WORKER_CONCURRENCY" => "$WORKER_CONCURRENCY"
+      "AWS_REGION" => "$AWS_REGION"
     }
   end
 
