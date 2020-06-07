@@ -10,8 +10,6 @@ import logging
 import json
 import sys
 
-logg = logging.getLogger(__file__)
-logg.debug(sys.path)
 # platform imports
 import config
 from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
@@ -19,9 +17,19 @@ from share.location.enum import LocationExternalSourceEnum, osm_extension_fields
 # local imports
 from .constants import QUERY_TIMEOUT, DEFAULT_COUNTRY_CODE, VALID_OSM_ENTRY_TYPES
 
+logg = logging.getLogger(__file__)
 
 
-def osm_get_detail(place_id : int):
+def valid_data(data : dict):
+    if not isinstance(data, dict):
+        return False
+    for field in osm_extension_fields:
+        if data.get(field) == None:
+            return False
+    return True
+
+
+def get_unsafe_detail(place_id : int):
 
     url = 'https://nominatim.openstreetmap.org/details?format=json&linkedplaces=1&place_id=' 
 
@@ -35,7 +43,7 @@ def osm_get_detail(place_id : int):
     return response_json
 
 
-def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
+def get_place_hierarchy(place_id : int, storage_check_callback=None):
     """Retrieves details from the OSM HTTP endpoint of the matching place_id,
     and recursively retrieves its parent relation places. The results are returned as location dict objects
 
@@ -83,7 +91,7 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
         if storage_check_callback != None:
             r = storage_check_callback(next_place_id)
             if r != None:
-                new_location['name'] = r.common_name
+                new_location['common_name'] = r.common_name
                 new_location['latitude'] = r.latitude
                 new_location['longitude'] = r.longitude
                 new_location['ext_type'] = LocationExternalSourceEnum.OSM
@@ -92,7 +100,7 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
                 locations.append(new_location)
                 break
        
-        response_json = osm_get_detail(next_place_id)
+        response_json = get_unsafe_detail(next_place_id)
         current_place_id = next_place_id
         next_place_id = response_json['parent_place_id']
         if response_json['type'] == 'unclassified':
@@ -101,13 +109,18 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
        
         # create new location object and add it to list 
         new_location = {
-                'name': response_json['names']['name'],
-                'latitude': response_json['centroid']['coordinates'][0],
-                'longitude': response_json['centroid']['coordinates'][1],
+                'common_name': response_json['names']['name'],
+                'latitude': response_json['centroid']['coordinates'][1],
+                'longitude': response_json['centroid']['coordinates'][0],
                 }
 
         for field in osm_extension_fields:
-            ext_data[field] = response_json[field]
+            # TODO: this workaround is needed until we do lookup call to get the info, in details the
+            # "class" identifier is for some reason called "category"
+            if field == 'class':
+                ext_data[field] = response_json['category']
+            else:
+                ext_data[field] = response_json[field]
 
         new_location['ext_type'] = LocationExternalSourceEnum.OSM
         new_location['ext_data'] = ext_data
@@ -116,7 +129,56 @@ def osm_get_place_hierarchy(place_id : int, storage_check_callback=None):
     return locations
 
 
-def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
+
+def resolve_id(osm_id : int, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
+    query = {
+       'osmtype': 'N',
+       'osmid': osm_id,
+       'format': 'json',
+       'addressdetails': 1,
+       'class': 'place',
+        }
+
+    if getattr(config, 'EXT_OSM_EMAIL', None):
+        q['email'] = config.EXT_OSM_EMAIL
+    query_string = urllib.parse.urlencode(query)
+
+    # perform osm query
+    url = 'https://nominatim.openstreetmap.org/details?' + query_string
+    try:
+        response = requests.get(url, timeout=QUERY_TIMEOUT)
+    except requests.exceptions.Timeout:
+        logg.warning('request timeout to openstreetmap osmid query; {}:{}'.format(country, osm_id))
+        return None
+    if response.status_code != 200:
+        logg.warning('failed request to openstreetmap osmid query; {}:{}'.format(country, osm_id))
+        return None
+
+    response_json = json.loads(response.text)
+    logg.debug(response_json)
+
+    # identify a suitable record among those returned
+    locations = []
+    place_id = 0
+    place = response_json
+    place_id = place['place_id']
+    if place_id == None or place_id == 0:
+        logg.debug('no suitable record found in openstreetmap for osmid {}'.format(osm_id))
+        return locations
+
+    # get related locations not already in database
+    try:
+        locations = get_place_hierarchy(place_id, storage_check_callback)
+    except LookupError as e:
+        logg.warning('osm hierarchical osmid query for {}:{} failed (response): {}'.format(country, osm_id, e))
+    except requests.exceptions.Timeout as e:
+        logg.warning('osm hierarchical osmid query for {}:{} failed (timeout): {}'.format(country, osm_id, e))
+                 
+    return locations
+
+
+
+def resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_callback=None):
     """Searches the OSM HTTP endpoint for a location name. If a match is found
     the location hierarchy is built and committed to database.
 
@@ -130,52 +192,61 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
     Returns
     -------
     location : Location
-        created / retrieved location object. If none is found, None is returned.
+        created / retrieved location objects.
     """
 
     # build osm query
     query = {
+            'addressdetails': 1,
             'format': 'json',
             'dedupe': 1,
-            'country': country, 
             'q': name,
             }
+    
     if getattr(config, 'EXT_OSM_EMAIL', None):
         query['email'] = config.EXT_OSM_EMAIL
     query_string = urllib.parse.urlencode(query)
 
     # perform osm query
+    locations = []
     url = 'https://nominatim.openstreetmap.org/search?' + query_string
     try:
         response = requests.get(url, timeout=QUERY_TIMEOUT)
     except requests.exceptions.Timeout:
         logg.warning('request timeout to openstreetmap; {}:{}'.format(country, name))
-        return None
+        return locations
     if response.status_code != 200:
         logg.warning('failed request to openstreetmap; {}:{}'.format(country, name))
-        return None
+        return locations
 
     response_json = json.loads(response.text)
     logg.debug(response_json)
 
     # identify a suitable record among those returned
-    place_id = 0
     for place in response_json:
-        if place['type'] in VALID_OSM_ENTRY_TYPES:
-            place_id = place['place_id']
-    if place_id == 0:
-        logg.debug('no suitable record found in openstreetmap for {}:{}'.format(country, name))
-        return None
+        place_id = 0
+        if place['address']['country_code'].upper() != country:
+            logg.debug('country mismatch; want {} got {}'.format(country, place['address']['country_code']))
+            continue
+        if place['type'] not in VALID_OSM_ENTRY_TYPES:
+            continue
+        place_id = place['place_id']
 
-    # get related locations not already in database
-    locations = []
-    try:
-        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
-    except LookupError as e:
-        logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
-    except requests.exceptions.Timeout as e:
-        logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
-                 
+        # get related locations not already in database
+        location = None
+        try:
+            location = get_place_hierarchy(place_id, storage_check_callback)
+        except LookupError as e:
+            logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
+        except requests.exceptions.Timeout as e:
+            logg.warning('osm hierarchical query for {}:{} failed (timeout): {}'.format(country, name, e))
+
+        locations.append(location)
+    
+    if len(locations) == 0:
+        logg.debug('no suitable record found in openstreetmap for {}:{}'.format(country, name))
+        return locations
+
 #    # set hierarchical relations and store in database
 #    for i in range(len(locations)-1):
 #        locations[i].set_parent(locations[i+1])
@@ -185,7 +256,7 @@ def osm_resolve_name(name : str, country=DEFAULT_COUNTRY_CODE, storage_check_cal
     return locations
 
 
-def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
+def resolve_coordinates(latitude, longitude, storage_check_callback=None):
   
     query = {
         'format': 'json',
@@ -212,21 +283,17 @@ def osm_resolve_coordinates(latitude, longitude, storage_check_callback=None):
     logg.debug(response_json)
 
     # identify a suitable record among those returned
+    locations = []
     place_id = 0
     place = response_json
-    #if place['osm_type'] in VALID_OSM_ENTRY_TYPES:
     place_id = place['place_id']
     if place_id == None or place_id == 0:
         logg.debug('no suitable record found in openstreetmap for N{}/E{}'.format(latitude, longitude))
-        return None
-
-    # skip the first entry if it is unclassified
-    #response_json = osm_get_detail
+        return locations
 
     # get related locations not already in database
-    locations = []
     try:
-        locations = osm_get_place_hierarchy(place_id, storage_check_callback)
+        locations = get_place_hierarchy(place_id, storage_check_callback)
     except LookupError as e:
         logg.warning('osm hierarchical query for {}:{} failed (response): {}'.format(country, name, e))
     except requests.exceptions.Timeout as e:

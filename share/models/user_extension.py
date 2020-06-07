@@ -7,7 +7,7 @@ Currently provides the following extensions:
 
 # platform imports
 from server import db
-from server.models.location import Location
+from share.models.location import Location
 
 
 class UserExtension(db.Model):
