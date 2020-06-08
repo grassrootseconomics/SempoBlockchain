@@ -63,10 +63,11 @@ class S3(FileSyncer):
             raise KeyError(e)
         return reader
 
-    def __init__(self, source_path, destination_path, key=None, secret=None):
+    def __init__(self, source_path, destination_path, region_name=None, key=None, secret=None):
         super(S3, self).__init__(source_path, destination_path, self._getfunc)
         if key == None or secret == None:
             session = boto3.Session(
+                region_name             = region_name,
                 aws_access_key_id       = key,
                 aws_secret_access_key   = secret,
             )
