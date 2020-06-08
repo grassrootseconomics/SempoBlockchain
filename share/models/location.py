@@ -7,6 +7,7 @@ ordered physical locations.
 # standard imports
 import hashlib
 import logging
+import json
 
 # framework imports
 from sqlalchemy.dialects.postgresql import JSON, JSONB
@@ -133,6 +134,9 @@ class LocationExternal(db.Model):
         self.external_reference = references_data
         self.location_id = location.id
 
+    def __repr__(self):
+        return '{} {}'.format(self.source, self.external_reference)
+
 
 class Location(db.Model):
     """SqlAlchemy model class representing a hierarchical relations between actual
@@ -170,6 +174,7 @@ class Location(db.Model):
     __tablename__ = 'location'
 
     id = db.Column(db.Integer, primary_key=True)
+    __table_args__ = (db.UniqueConstraint('common_name', 'parent_id', name='location_path_unique_idx'),)
     common_name = db.Column(db.String())
     latitude = db.Column(db.Numeric)
     longitude = db.Column(db.Numeric)
@@ -247,6 +252,26 @@ class Location(db.Model):
         return l
 
 
+    def get_custom(self, source_enum):
+        """Returns the extended reference of a location for the given type enum
+
+        Parameters
+        ----------
+        source_enum : enum
+            external source identifier
+
+        Returns
+        -------
+        external_reference : dict
+            the matching reference values
+
+        """
+        for external in self.location_external:
+            if external.source == source_enum.name:
+                return external.external_reference
+
+
+
     def __init__(self, common_name, latitude, longitude, parent=None, **kwargs):
         super(Location, self).__init__(**kwargs)
         self.common_name = common_name
@@ -254,3 +279,13 @@ class Location(db.Model):
         self.longitude = longitude
         if parent != None:
             self.set_parent(parent)
+
+
+    def __str__(self):
+        location_string = []
+        location = self
+        while location != None:
+            location_string.append(location.common_name)
+            location = location.parent
+        return ", ".join(location_string)
+

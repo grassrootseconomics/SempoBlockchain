@@ -68,6 +68,12 @@ def create_app():
 
     app.json_encoder = ExtendedJSONEncoder
 
+    # includes temporary workarounds until cleanup of init file
+    import server.ge_custom_init
+    ge_custom_init.do(
+            app=app,
+            )
+
     return app
 
 def register_extensions(app):
@@ -363,3 +369,5 @@ from server.utils.ussd.ussd_tasks import UssdTasker
 ussd_tasker = UssdTasker()
 
 ge_w3 = Web3(HTTPProvider(config.GE_HTTP_PROVIDER))
+
+

@@ -7,8 +7,8 @@ import logging
 
 # platform imports
 from server import db
-from helpers.factories import UserFactory 
-from server.models import Location
+from helpers.v2.factories import ExtendedUserFactory 
+from share.models.location import Location
 from share.location.enum import LocationExternalSourceEnum
 
 logg = logging.getLogger(__file__)
@@ -41,7 +41,6 @@ def test_location_set_external(test_client, new_locations):
 
     ext = Location.get_by_custom(LocationExternalSourceEnum.OSM, 'foo', 'bar')
     assert ext != None
-    logg.debug(new_locations['top'])
     assert ext == new_locations['top']
 
     assert new_locations['top'].is_same_external_data(LocationExternalSourceEnum.OSM, ext_data_osm)
@@ -49,7 +48,7 @@ def test_location_set_external(test_client, new_locations):
     assert not new_locations['top'].is_same_external_data(LocationExternalSourceEnum.OSM, ext_data_geonames)
     assert not new_locations['top'].is_same_external_data(LocationExternalSourceEnum.GEONAMES, ext_data_geonames)
 
-
+    assert new_locations['top'].get_custom(LocationExternalSourceEnum.OSM)['baz'] == ext_data_osm['baz']
 
 def test_user_location_link(test_client, new_locations):
     """
@@ -58,7 +57,7 @@ def test_user_location_link(test_client, new_locations):
     THEN check that the relation is stored
     """
 
-    user = UserFactory(first_name='Melvin', last_name='Ferd')
+    user = ExtendedUserFactory(first_name='Melvin', last_name='Ferd')
     user.full_location = new_locations['leaf']
 
     assert user.full_location.common_name == new_locations['leaf'].common_name
