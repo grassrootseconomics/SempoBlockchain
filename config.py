@@ -416,10 +416,7 @@ except KeyError:
     pass
 
 
-# gitlab secrets to access file API
-GITLAB_PRIVATE_TOKEN = secrets_parser['GITLAB'].get('private_token')
-GITLAB_PROJECT_ID = secrets_parser['GITLAB'].get('project_id')
-
+GITLAB_PROJECT_ID = config_parser['GITLAB'].get('project_id')
 GITLAB_SCHEME = config_parser['GITLAB'].get('scheme')
 GITLAB_HOST = config_parser['GITLAB'].get('host')
 GITLAB_URL_PATH = config_parser['GITLAB'].get('path')

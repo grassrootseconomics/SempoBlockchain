@@ -48,7 +48,6 @@ class Gitlab(FileSyncer):
             url = f'{config.GITLAB_SCHEME}://{config.GITLAB_HOST}{config.GITLAB_URL_PATH}{config.GITLAB_PROJECT_ID}{self.source_path}{url_encoded_filename}?ref={config.GITLAB_BRANCH}'
             response = requests.get(url=url,
                                     headers={
-                                        'PRIVATE-TOKEN': config.GITLAB_PRIVATE_TOKEN,
                                         'Accept': 'application/json'
                                     },
                                     timeout=10)
