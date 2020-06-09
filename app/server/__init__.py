@@ -33,10 +33,9 @@ from web3 import Web3, HTTPProvider
 sys.path.append('../')
 import config
 
-dirname = os.path.dirname(__file__)
-i18n.load_path.append(os.path.abspath(os.path.join(dirname, 'locale')))
+# TODO: encapsulate in generic object throughout implementation
+i18n.load_path.append(config.SYSTEM_LOCALE_PATH)
 i18n.set('fallback', config.LOCALE_FALLBACK)
-
 
 class ExtendedJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -68,6 +67,12 @@ def create_app():
     register_blueprints(app)
 
     app.json_encoder = ExtendedJSONEncoder
+
+    # includes temporary workarounds until cleanup of init file
+    import server.ge_custom_init
+    ge_custom_init.do(
+            app=app,
+            )
 
     return app
 
@@ -364,3 +369,5 @@ from server.utils.ussd.ussd_tasks import UssdTasker
 ussd_tasker = UssdTasker()
 
 ge_w3 = Web3(HTTPProvider(config.GE_HTTP_PROVIDER))
+
+

@@ -30,41 +30,44 @@ common_secrets_parser = configparser.ConfigParser()
 config_parser = configparser.ConfigParser()
 secrets_parser = configparser.ConfigParser()
 
+load_from_s3 = False
+SERVER_HAS_S3_AUTH = False
 if os.environ.get('LOAD_FROM_S3') is not None:
-    load_from_s3 = str(os.environ.get('LOAD_FROM_S3')).lower() in ['1', 'true']
-    if load_from_s3:
-        logg.debug("ATTEMPT LOAD S3 CONFIG (FORCED FROM ENV VAR)")
-    else:
-        logg.debug("ATTEMPT LOAD LOCAL CONFIG (FORCED FROM ENV VAR)")
-
-elif os.environ.get('AWS_ACCESS_KEY_ID'):
-    logg.debug("ATTEMPT LOAD S3 CONFIG (AWS ACCESS KEY FOUND)")
+    logg.debug("LOAD_FROM_S3 EXPLICITLY SET - ATTEMPT LOAD CONFIG FROM S3")
     load_from_s3 = True
-
-elif os.environ.get('SERVER_HAS_S3_AUTH'):
-    logg.debug("ATTEMPT LOAD S3 CONFIG (SERVER CLAIMS TO HAVE S3 AUTH)")
+    #load_from_s3 = str(os.environ.get('LOAD_FROM_S3')).lower() in ['1', 'true']
+elif os.environ.get('SERVER_HAS_S3_AUTH') is not None:
+    logg.debug("SERVER_HAS_S3_AUTH SET - ATTEMPT LOAD CONFIG FROM S3")
     load_from_s3 = True
-
+    SERVER_HAS_S3_AUTH = True
 else:
     logg.debug("ATTEMPT LOAD LOCAL CONFIG")
-    load_from_s3 = False
+
+SECRET_BUCKET = os.environ.get("SECRETS_BUCKET")
+RESOURCE_BUCKET = os.environ.get("RESOURCE_BUCKET", 'sarafu-resources')
+if RESOURCE_BUCKET == '': 
+    RESOURCE_BUCKET = 'sarafu-resources'
+
+TEST_BUCKET = os.environ.get("TEST_BUCKET", 'sarafu-tests')
+if TEST_BUCKET == '': 
+    TEST_BUCKET = 'sarafu-tests'
 
 if load_from_s3:
     # Load config from S3 Bucket
-    if os.environ.get('AWS_ACCESS_KEY_ID'):
+    if SERVER_HAS_S3_AUTH:
+        # The server itself has S3 Auth
+        session = boto3.Session()
+    #if os.environ.get('AWS_ACCESS_KEY_ID'):
+    else:
         # S3 Auth is set via access keys
-        if not os.environ.get('AWS_SECRET_ACCESS_KEY'):
+        if not os.environ.get('AWS_SECRET_ACCESS_KEY') or not os.environ.get('AWS_ACCESS_KEY_ID'):
             raise Exception("Missing AWS_SECRET_ACCESS_KEY")
         session = boto3.Session(
             aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
         )
-    else:
-        # The server itself has S3 Auth
-        session = boto3.Session()
     client = session.client('s3')
 
-    SECRET_BUCKET = os.environ.get("SECRETS_BUCKET", "ctp-prod-secrets")
     FORCE_SSL = True
 
     common_obj = client.get_object(Bucket=SECRET_BUCKET, Key=COMMON_FILENAME)
@@ -113,6 +116,9 @@ DEPLOYMENT_NAME = config_parser['APP']['DEPLOYMENT_NAME']
 if ENV_DEPLOYMENT_NAME.lower() != DEPLOYMENT_NAME.lower():
     raise RuntimeError('deployment name in env ({}) does not match that in config ({}), aborting'.format(ENV_DEPLOYMENT_NAME.lower(),
                                                                                             DEPLOYMENT_NAME.lower()))
+
+SYSTEM_LOCALE_PATH = config_parser['SYSTEM'].get('locale_path') or CONFIG_DIR + '/var/lib/locale'
+
 BOUNCER_ENABLED = config_parser['APP'].getboolean('BOUNCER_ENABLED', False)
 IS_TEST = config_parser['APP'].getboolean('IS_TEST', False)
 IS_PRODUCTION = config_parser['APP'].getboolean('IS_PRODUCTION')
@@ -217,6 +223,9 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 AWS_SES_KEY_ID = common_secrets_parser['AWS']['ses_key_id']
 AWS_SES_SECRET = common_secrets_parser['AWS']['ses_secret']
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_HAVE_CREDENTIALS = AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 
 if IS_PRODUCTION:
     SENTRY_SERVER_DSN = common_secrets_parser['SENTRY']['server_dsn']
@@ -372,6 +381,10 @@ except KeyError:
     GE_DB_PORT = ''
     GE_DB_PASSWORD = ''
     GE_HTTP_PROVIDER = ''
+
+EXT_OSM_EMAIL = os.environ.get('OSM_EMAIL')
+if not EXT_OSM_EMAIL and config_parser.has_section('OSM'):
+    EXT_OSM_EMAIL = config_parser['OSM']['email']
 
 TRANSFER_LIMITS = {}
 TRANSFER_LIMITS['0.P7']	= 5000

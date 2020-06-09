@@ -163,6 +163,7 @@ def new_credit_transfer(create_transfer_account_user, external_reserve_token):
     )
     return credit_transfer
 
+
 @pytest.fixture(scope='function')
 def other_new_credit_transfer(create_transfer_account_user, external_reserve_token):
     # Janky copy paste job because of how pytest works
@@ -485,7 +486,6 @@ def monkeymodule(request):
     mpatch = MonkeyPatch()
     yield mpatch
     mpatch.undo()
-
 
 @pytest.fixture(scope='module')
 def create_temporary_user(test_client, init_database, create_organisation):
