@@ -5,83 +5,42 @@
 import os
 import logging
 
-logg = logging.getLogger(__file__)
+# platform imports
+import config
+
+file_sync_logger = logging.getLogger(__file__)
+
+
+def source_newer(last_commit_id):
+    if last_commit_id != config.GITLAB_LAST_COMMIT_ID:
+        return True
+    return False
 
 
 class FileSyncer:
-    """Parent class to be overloaded by component providing access to
-    external file resources.
-
-    A function is passed to the constructor by the implementer, which _must_ 
-    fulfull the following interface:
-        * accept a single string as argument for the filename to retrieve
-        * return an object implementing a read(blocksize=int) method
-
-    Attributes
-    ----------
-    blocksize : int
-        byte count used as argument for read from remote source
-    source_path : str
-        implementation-dependent source file identifier
-    destination_path : str
-        path used for output of retrieved files
-    getfunc : function
-        implementer file callback function
-
-    Args
-    ----
-    source_path : str
-        implementation-dependent source file identifier
-    destination_path : str
-        path used for output of retrieved files
-    getfunc : function
-        implementer file callback function
     """
 
-    blocksize = 1024
-
-    def source_is_newer(self, filepath: str) -> bool:
-        """Abstract method called by sync to determine whether a file should be
-        retrieved.
-
-        This default implementation will always return False.
-        """
-
-        return False
-
+    """
+    def __init__(self, destination_path, get_files_func):
+        self.destination_path = destination_path
+        self.get_files_func = get_files_func
 
     def sync(self, files: list) -> list:
-        """Retrieves the given list of files from the implemented remote source.
+        """
 
-        Parameters
-        ----------
-        files : list
-            list of files to retrieve
-
-        Returns
-        -------
-        retrieved_files : list
+        :param files: a list of files to be loaded from external resource
+        :return:
         """
 
         updated_files = []
         os.makedirs(self.destination_path, 0o777, exist_ok=True)
-        for f in files:
-            if self.source_is_newer(f):
-                fo = open(self.destination_path + '/' + f, 'wb')
-                r = self.getfunc(f)
-                while 1:
-                    data = r.read(self.blocksize)
-                    if not data:
-                        break
-                    fo.write(data)
-                r.close()
-                fo.close()
-                updated_files.append(f)
+        for file in files:
+            file_stream = open(self.destination_path + '/' + file, 'wb')
+            content, last_commit_id = self.get_files_func(file)
+            if source_newer(last_commit_id):
+                file_stream.write(content)
+                file_stream.close()
+                updated_files.append(file)
+            break
 
         return updated_files
-
-
-    def __init__(self, source_path, destination_path, getfunc):
-        self.source_path = source_path
-        self.destination_path = destination_path
-        self.getfunc = getfunc

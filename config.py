@@ -414,3 +414,12 @@ try:
         TRANSFER_LIMITS[k.upper()] = v 
 except KeyError:
     pass
+
+
+# gitlab configs
+GITLAB_PRIVATE_TOKEN = secrets_parser['GITLAB'].get('private_token')
+GITLAB_PROJECT_ID = secrets_parser['GITLAB'].get('project_id')
+GITLAB_BASE_URL = config_parser['GITLAB'].get('base_url')
+GITLAB_BRANCH = config_parser['GITLAB'].get('branch')
+GITLAB_FILE_FETCHER_BASE_URL = f'{GITLAB_BASE_URL}{GITLAB_PROJECT_ID}/repository/files/locale%2F'
+GITLAB_LAST_COMMIT_ID = secrets_parser['GITLAB'].get('last_commit_id')
