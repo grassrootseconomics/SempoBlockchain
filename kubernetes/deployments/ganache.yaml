@@ -1,0 +1,45 @@
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ganache
+  labels:
+    app: ganache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ganache
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: ganache
+    spec:
+      containers:
+        - name: ganache
+          image: trufflesuite/ganache-cli:v6.9.1
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+            requests:
+              cpu: "0.25"
+              memory: 256Mi
+          args: ["-l", "80000000", "-i", "42"]
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8545
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ganache
+spec:
+  ports:
+    - protocol: TCP
+      port: 8545
+      targetPort: 8545
+  selector:
+    app: ganache

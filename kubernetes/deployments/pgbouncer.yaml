@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  labels:
+    run: pgbouncer
+spec:
+  revisionHistoryLimit: 10 # removes old replicasets for deployment rollbacks
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0 # Avoid Terminating and ContainerCreating at the same time
+  replicas: 1
+  selector:
+    matchLabels:
+      run: pgbouncer
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        run: pgbouncer
+    spec:
+      containers:
+        - name: pgbouncer
+          image: grassrootseconomics/pgbouncer:02fb5dd
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: "0.5"
+              memory: 128Mi
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: pgbouncer
+            - secretRef:
+                name: aws
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: 5432
+          #   periodSeconds: 60
+          lifecycle:
+            preStop:
+              exec:
+                # Allow existing queries clients to complete within 120 seconds
+                command:
+                  ["/bin/sh", "-c", "killall -INT pgbouncer && sleep 120"]
+          # securityContext:
+          #   allowPrivilegeEscalation: false
+          #   capabilities:
+          #     drop: ['all']
+          ports:
+            - containerPort: 6543
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  labels:
+    run: pgbouncer
+spec:
+  ports:
+    - port: 6543
+      protocol: TCP
+  selector:
+    run: pgbouncer

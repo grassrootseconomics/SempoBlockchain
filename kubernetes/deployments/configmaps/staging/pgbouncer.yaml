@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer
+data:
+  DEPLOYMENT_NAME: "staging"
+  SERVER_HAS_S3_AUTH: "true"
+  SECRETS_BUCKET: "sarafu-secrets-k8s"

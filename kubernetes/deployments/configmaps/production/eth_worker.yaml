@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eth-worker-high-priority
+data:
+  DEPLOYMENT_NAME: "sarafu"
+  CONTAINER_TYPE: "HIGH_PRIORITY_WORKER"
+  SERVER_HAS_S3_AUTH: "true"
+  PYTHONUNBUFFERED: "0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eth-worker-low-priority
+data:
+  DEPLOYMENT_NAME: "sarafu"
+  CONTAINER_TYPE: "LOW_PRIORITY_WORKER"
+  SERVER_HAS_S3_AUTH: "true"
+  PYTHONUNBUFFERED: "0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eth-worker-processor
+data:
+  DEPLOYMENT_NAME: "sarafu"
+  CONTAINER_TYPE: "PROCESSOR"
+  SERVER_HAS_S3_AUTH: "true"
+  PYTHONUNBUFFERED: "0"

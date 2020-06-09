@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: traefik
+  name: traefik-ingress-controller
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: traefik-config
+  namespace: traefik
+data:
+  traefik.toml: |
+    [api]
+      insecure = true
+    [accessLog]
+    [entryPoints]
+      [entryPoints.web]
+        address = ":80"
+      [entryPoints.websecure]
+        address = ":443"
+    [http.middlewares]
+      [http.middlewares.https-redirect.redirectScheme]
+        scheme = "https"
+        permanent = true
+    [certificatesResolvers.external.acme]
+      email = "ben@bitsofether.com"
+      storage = "/acme/acme-external.json"
+      # caserver = "https://acme-staging-v02.api.letsencrypt.org/directory"
+      [certificatesResolvers.external.acme.httpChallenge]
+        # used during the challenge
+        entryPoint = "web"
+    [certificatesResolvers.default.acme]
+      email = "ben@bitsofether.com"
+      storage = "/acme/acme.json"
+      [certificatesResolvers.default.acme.dnsChallenge]
+        provider = "route53"
+        delayBeforeCheck = 0
+    [[acme.domains]]
+      main = "*.bitsofether.com"
+      sans = ["www.bitsofether.com", "bitsofether.com"]
+    [providers.kubernetesCRD]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: traefik-pvc
+  namespace: traefik
+spec:
+  storageClassName: do-block-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: traefik
+  name: traefik
+  labels:
+    app: traefik
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      volumes:
+        - name: config
+          configMap:
+            name: traefik-config
+        - name: traefik-acme-pv-storage
+          persistentVolumeClaim:
+            claimName: traefik-pvc
+      containers:
+        - name: traefik
+          image: traefik:v2.0
+          env:
+            - name: AWS_ACCESS_KEY_ID # IAM: traefik-route53-dnschallenge
+              value: ""
+            - name: AWS_SECRET_ACCESS_KEY
+              value: ""
+          args:
+            - --configfile=/config/traefik.toml
+          volumeMounts:
+            - mountPath: "/config"
+              name: config
+            - mountPath: "/acme"
+              name: traefik-acme-pv-storage
+          ports:
+            - name: web
+              containerPort: 80
+            - name: websecure
+              containerPort: 443
+            - name: admin
+              containerPort: 8080

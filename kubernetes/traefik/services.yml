@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ganache
+  namespace: sarafu-staging
+spec:
+  ports:
+    - protocol: TCP
+      port: 8545
+      targetPort: 8545
+  selector:
+    app: ganache

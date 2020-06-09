@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eth-worker-high-priority
+  labels:
+    app: eth-worker-high-priority
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eth-worker-high-priority
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: eth-worker-high-priority
+    spec:
+      containers:
+        - name: eth-worker
+          image: grassrootseconomics/eth_worker:02fb5dd
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+            requests:
+              cpu: "0.25"
+              memory: 256Mi
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: eth-worker-high-priority
+            - secretRef:
+                name: aws
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eth-worker-low-priority
+  labels:
+    app: eth-worker-low-priority
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eth-worker-low-priority
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: eth-worker-low-priority
+    spec:
+      containers:
+        - name: eth-worker
+          image: grassrootseconomics/eth_worker:02fb5dd
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+            requests:
+              cpu: "0.25"
+              memory: 128Mi
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: eth-worker-low-priority
+            - secretRef:
+                name: aws
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eth-worker-processor
+  labels:
+    app: eth-worker-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eth-worker-processor
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: eth-worker-processor
+    spec:
+      containers:
+        - name: eth-worker
+          image: grassrootseconomics/eth_worker:02fb5dd
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+            requests:
+              cpu: "0.25"
+              memory: 128Mi
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: eth-worker-processor
+            - secretRef:
+                name: aws
+          ports:
+            - containerPort: 80
