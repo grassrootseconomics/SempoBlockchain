@@ -10,7 +10,7 @@ import logging
 import config
 from files.gitlab import Gitlab
 
-init_logger = logging.getLogger(__file__)
+logg = logging.getLogger(__file__)
 
 
 def init():
@@ -22,7 +22,7 @@ def init():
         Any exception raised should result in immediate termination
     """
 
-    locale_syncer = Gitlab(config.SYSTEM_LOCALE_PATH)
+    locale_syncer = Gitlab(source_path=config.GITLAB_FILEPATH, destination_path=config.SYSTEM_LOCALE_PATH)
 
     r = locale_syncer.sync([
         'general_sms.en.yml',
@@ -32,7 +32,7 @@ def init():
         ])
 
     for f in r:
-        init_logger.info('synced locale file: {}'.format(f))
+        logg.info('synced locale file: {}'.format(f))
 
 
 # In certain cases, for example a docker invocation script,
