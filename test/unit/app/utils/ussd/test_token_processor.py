@@ -73,7 +73,7 @@ def test_send_balance_sms(mocker, test_client, init_database, initialised_blockc
     mocker.patch('server.utils.phone.send_message', mock_send_message)
     TokenProcessor.send_balance_sms(user)
 
-@pytest.mark.xfail(reaons='result currently hardcoded to 1-1')
+@pytest.mark.xfail(reason='result currently hardcoded to 1-1')
 @pytest.mark.parametrize("user_type,preferred_language,exchange_text,limit_text", [
     # ("standard", "en", "For 1 SM1 you get 1.2 KSH", "a maximum of 20.00 SM1 at an agent every 7 days"),
     ("group", "sw", "Kwa kila 1 SM1 utapata 1.2 KSH", "100.00 SM1 kwa wakala baada ya siku 30"),
@@ -103,15 +103,15 @@ def test_fetch_exchange_rate(mocker, test_client, init_database, initialised_blo
 
 @pytest.mark.parametrize("lang, token1_symbol, token2_symbol, recipient_balance, expected_send_msg, expected_receive_msg", [
     ("en", "SM1", "SM1", 31000,
-     "Successfully sent a payment of 10.00 SM1 to Joe Bar",
-     "Successfully received a payment of 10.00 SM1 from Bob Foo"),
+     "Successfully sent 10 SM1 to Joe Bar",
+     "Successfully received 10 SM1 from Bob Foo"),
     ("en", "SM1", "SM2", 31500,
      "sent a payment of 10.00 SM1 = 15.00 SM2",
      "received a payment of 15.00 SM2 = 10.00 SM1"),
 
     ("sw", "SM1", "SM1", 31000,
-     "Umetuma 10.00 SM1 kwa Joe Bar",
-     "Umepokea 10.00 SM1 kutoka kwa Bob Foo"),
+     "Umetuma 10 SM1 kwa Joe Bar",
+     "Umepokea 10 SM1 kutoka kwa Bob Foo"),
     ("sw", "SM1", "SM2", 31500,
      "Umetuma 10.00 SM1 = 15.00 SM2",
      "Umepokea 15.00 SM2 = 10.00 SM1 kutoka kwa Bob Foo")
