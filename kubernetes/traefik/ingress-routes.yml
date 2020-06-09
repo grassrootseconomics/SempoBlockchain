@@ -1,0 +1,104 @@
+---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: simpleingressroute
+#   namespace: sarafu-staging
+# spec:
+#   entryPoints:
+#     - http
+#   routes:
+#   - match: Host(`ganache.bitsofether.com`)
+#     kind: Rule
+#     services:
+#     - name: ganache
+#       port: 8545
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: app
+  namespace: sarafu-staging
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/acme-challenge-type: http01
+spec:
+  rules:
+    - host: staging.sarafu.network
+      http:
+        paths:
+          - backend:
+              serviceName: app
+              servicePort: 9000
+  tls:
+    - hosts:
+        - staging.sarafu.network
+      secretName: staging.sarafu.network
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: app
+  namespace: sarafu-production
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/acme-challenge-type: http01
+spec:
+  rules:
+    - host: admin.sarafu.network
+      http:
+        paths:
+          - backend:
+              serviceName: app
+              servicePort: 9000
+  tls:
+    - hosts:
+        - admin.sarafu.network
+      secretName: admin.sarafu.network
+---
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: ganache
+#   namespace: sarafu-staging
+# spec:
+#   rules:
+#     - host: ganache.bitsofether.com
+#       http:
+#         paths:
+#           - backend:
+#               serviceName: ganache
+#               servicePort: 8545
+# ---
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: kubernetes-dashboard
+#   namespace: kubernetes-dashboard
+# spec:
+#   rules:
+#     - host: dashboard.bitsofether.com
+#       http:
+#         paths:
+#           - backend:
+#               serviceName: kubernetes-dashboard
+#               servicePort: 443
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: dashboard
+#   namespace: kubernetes-dashboard
+# spec:
+#   rules:
+#   - host: dashboard.bitsofether.com
+#     http:
+#       paths:
+#       - backend:
+#           serviceName: kubernetes-dashboard
+#           servicePort: 443

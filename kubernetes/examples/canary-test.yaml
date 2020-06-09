@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-app
+spec:
+  type: ExternalName
+  externalName: "awseb-e-z-awsebloa-11p70mg8af2da-483556678.eu-central-1.elb.amazonaws.com"
+  ports:
+    - name: http
+      targetPort: 80
+      port: 80
+    - name: https
+      targetPort: 443
+      port: 443
+  selector:
+    app: aws-app
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: app
+  namespace: sarafu-production
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/acme-challenge-type: http01
+    traefik.ingress.kubernetes.io/service-weights: |
+      app: 100%
+      aws-app: 0%
+spec:
+  rules:
+    - host: admin.sarafu.network
+      http:
+        paths:
+          - backend:
+              serviceName: app
+              servicePort: 9000
+          - backend:
+              serviceName: aws-app
+              servicePort: http
+  tls:
+    - hosts:
+        - admin.sarafu.network
+      secretName: admin.sarafu.network

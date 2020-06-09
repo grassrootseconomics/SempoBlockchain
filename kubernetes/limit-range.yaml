@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+  namespace: sarafu-staging
+spec:
+  limits:
+    - default:
+        memory: 512Mi
+        cpu: "0.5"
+      defaultRequest:
+        memory: 256Mi
+        cpu: "0.25"
+      type: Container
