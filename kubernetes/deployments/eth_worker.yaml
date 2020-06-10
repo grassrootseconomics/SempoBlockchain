@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: eth-worker
-          image: grassrootseconomics/eth_worker:02fb5dd
+          image: grassrootseconomics/eth_worker:591528b
           resources:
             limits:
               cpu: "0.5"
@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
         - name: eth-worker
-          image: grassrootseconomics/eth_worker:02fb5dd
+          image: grassrootseconomics/eth_worker:591528b
           resources:
             limits:
               cpu: "0.5"
@@ -92,7 +92,7 @@ spec:
     spec:
       containers:
         - name: eth-worker
-          image: grassrootseconomics/eth_worker:02fb5dd
+          image: grassrootseconomics/eth_worker:591528b
           resources:
             limits:
               cpu: "0.5"

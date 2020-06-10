@@ -2,10 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: app
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0 # Avoid Terminating and ContainerCreating at the same time
   selector:
     matchLabels:
       app: app
@@ -18,14 +23,14 @@ spec:
     spec:
       containers:
         - name: app
-          image: grassrootseconomics/server:02fb5dd
+          image: grassrootseconomics/server:591528b
           resources:
             limits:
-              cpu: "1"
-              memory: 512Mi
+              cpu: "0.2"
+              memory: 2048Mi
             requests:
-              cpu: "0.5"
-              memory: 256Mi
+              cpu: "0.15"
+              memory: 1536Mi
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
