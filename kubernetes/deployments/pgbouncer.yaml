@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgbouncer
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
   labels:
     run: pgbouncer
 spec:
@@ -22,7 +24,7 @@ spec:
     spec:
       containers:
         - name: pgbouncer
-          image: grassrootseconomics/pgbouncer:02fb5dd
+          image: grassrootseconomics/pgbouncer:591528b
           resources:
             limits:
               cpu: "1"

@@ -2,4 +2,4 @@
 
 cd app
 npm run test:coverage
-
+cd ../
