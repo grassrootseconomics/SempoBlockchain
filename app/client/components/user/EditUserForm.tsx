@@ -39,6 +39,7 @@ export interface IEditUser {
   failedPinAttempts: number;
   accountType: TransferAccountTypes;
   [key: string]: any;
+  ussdMenuInfoTitle: string;
 }
 
 interface OuterProps {
@@ -109,7 +110,8 @@ class EditUserForm extends React.Component<
       oneTimeCode: selectedUser.one_time_code,
       failedPinAttempts: selectedUser.failed_pin_attempts,
       businessUsage: transferUsageName,
-      ...attr_dict
+      ...attr_dict,
+      ussdMenuInfoTitle: selectedUser.ussd_menu_info_title
     });
   }
 
@@ -330,6 +332,9 @@ class EditUserForm extends React.Component<
                 </SubRow>
               </Row>
               <Row>
+                <SubRow>
+                  <InputField name="ussdMenuInfoTitle" label="Info title" />
+                </SubRow>
                 <SubRow>
                   {/*
                     // @ts-ignore */}

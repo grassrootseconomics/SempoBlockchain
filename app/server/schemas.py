@@ -57,6 +57,7 @@ class UserSchema(SchemaBase):
     is_tokenagent           = fields.Boolean(attribute='has_token_agent_role')
     is_groupaccount         = fields.Boolean(attribute='has_group_account_role')
     is_any_admin            = fields.Boolean(attribute='is_any_admin')
+    ussd_menu_info_title    = fields.Method("get_ussd_menu_info_title")
 
     registration_method     = fields.Function(lambda obj: obj.registration_method.value)
 
@@ -105,6 +106,10 @@ class UserSchema(SchemaBase):
                 return referrer.public_serial_number
             if referrer.email:
                 return referrer.email
+
+    def get_ussd_menu_info_title(self, obj):
+        if obj.ussd_menu_info_title_configs:
+            return obj.ussd_menu_info_title_configs['info_title']
 
 
 class UploadedResourceSchema(SchemaBase):

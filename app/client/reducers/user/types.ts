@@ -23,6 +23,7 @@ export interface User {
   referred_by?: string;
   one_time_code?: string;
   registration_method?: string;
+  ussd_menu_info_title?: string;
 }
 
 export interface CreateUser extends User {

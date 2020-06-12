@@ -71,7 +71,8 @@ class SingleUserManagement extends React.Component<Props> {
         is_groupaccount: form.accountType === TransferAccountTypes.GROUPACCOUNT,
         referred_by: form.referredBy,
         custom_attributes: attr_dict,
-        business_usage_name: businessUsage
+        business_usage_name: businessUsage,
+        ussd_menu_info_title: form.ussdMenuInfoTitle
       },
       this.props.userId
     );
