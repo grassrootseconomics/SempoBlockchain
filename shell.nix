@@ -1,20 +1,23 @@
 with import <nixpkgs> { };
 
 let
+  commitRev = "025deb80b2412e5b7e88ea1de631d1bd65af1840";
+  nixpkgs = builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs-channels/archive/${commitRev}.tar.gz";
+    sha256 = "09mp6vqs0h71g27w004yrz1jxla31ihf18phw69wj61ix74ac4m0";
+  };
+  pkgs = import nixpkgs { config = {}; };
   python = pkgs.python36;
-  pythonPackages = python36Packages;
+  pythonPackages = pkgs.python36Packages;
 in
 stdenv.mkDerivation {
   name = "dev";
   buildInputs = [ (import ./default.nix { inherit pkgs; }) ] ++ [
-    redis-desktop-manager
-    pgadmin
     python
     pythonPackages.pip
     pythonPackages.setuptools
     pythonPackages.virtualenvwrapper
     pythonPackages.pandas
-    libmysqlclient
   ];
   shellHook = "
     export PYTHONPATH=`pwd`/venv/${python.sitePackages}/:$PYTHONPATH
@@ -35,6 +38,3 @@ stdenv.mkDerivation {
     export SOURCE_DATE_EPOCH=315532800
   ";
 }
-
-# nix-build default.nix | cachix push sarafu-dev
-# cachix use sarafu-dev

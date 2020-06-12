@@ -1,5 +1,5 @@
-docker:
-  stage: docker
+test:
+  stage: test
   image: $REGISTRY_DEVELOPMENT/build-env:latest
   services:
     - docker:dind
@@ -7,7 +7,8 @@ docker:
     PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_BUILD_REF_NAME
   script:
-    - ./.gitlab-ci/docker.sh
+    - cachix use sarafu-dev
+    - nix-shell
+    - ./vagrant/pipeline.sh
   only:
-    - master
-    - production
+    - merge_requests

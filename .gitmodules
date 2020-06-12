@@ -1,6 +1,6 @@
 [submodule "kubernetes/csi-packet"]
 	path = kubernetes/csi-packet
-	url = git@github.com:packethost/csi-packet.git
+	url = https://github.com/packethost/csi-packet.git
 [submodule "kubernetes/deployments/postgres/pgbouncer"]
 	path = kubernetes/deployments/postgres/pgbouncer
-	url = git@github.com:edoburu/docker-pgbouncer.git
+	url = https://github.com/edoburu/docker-pgbouncer.git
