@@ -26,11 +26,11 @@ spec:
           image: grassrootseconomics/server:591528b
           resources:
             limits:
-              cpu: "0.2"
-              memory: 2048Mi
+              cpu: "0.25"
+              memory: 4096Mi
             requests:
-              cpu: "0.15"
-              memory: 1536Mi
+              cpu: "0.2"
+              memory: 4096Mi
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
