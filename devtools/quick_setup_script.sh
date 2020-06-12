@@ -68,17 +68,17 @@ echo If this section hangs, you might have a bunch of idle postgres connections.
 echo "sudo kill -9 \$(ps aux | grep '[p]ostgres .* idle' | awk '{print \$2}')"
 
 db_server=postgres://${PGUSER:-postgres}:${PGPASSWORD:-password}@localhost:5432
-app_db=$db_server/${APP_DB:-sempo_app}
-eth_worker_db=$db_server/${WORKER_DB:-eth_worker}
+app_db=$db_server/${APP_DB:-grassroots}
+eth_worker_db=$db_server/${WORKER_DB:-sempo_eth_worker}
 
 set -e
 psql $db_server -c ''
 
 set +e
 
-psql $db_server -c "DROP DATABASE IF EXISTS ${APP_DB:-sempo_app}"
+psql $db_server -c "DROP DATABASE IF EXISTS ${APP_DB:-grassroots}"
 psql $db_server -c "DROP DATABASE IF EXISTS ${WORKER_DB:-sempo_eth_worker}"
-psql $db_server -c "CREATE DATABASE ${APP_DB:-sempo_app}"
+psql $db_server -c "CREATE DATABASE ${APP_DB:-grassroots}"
 psql $db_server -c "CREATE DATABASE ${WORKER_DB:-sempo_eth_worker}"
 
 cd app

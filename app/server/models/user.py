@@ -109,6 +109,7 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
     lng = db.Column(db.Float())
 
     _held_roles = db.Column(JSONB)
+    ussd_menu_info_title_configs = db.Column(JSONB)
 
     is_activated = db.Column(db.Boolean, default=False)
     is_disabled = db.Column(db.Boolean, default=False)
@@ -702,6 +703,21 @@ class User(ManyOrgBase, ModelBase, SoftDelete):
     def get_reserve_token(self):
         # reserve token is master token for now
         return Organisation.master_organisation().token
+
+    def set_ussd_menu_info_title(self,
+                                 info_title: str,
+                                 sessions_visible: int = config.USSD_INFO_TITLE_DISPLAY_SESSIONS):
+        """
+        This method persists the custom info title and the number of ussd sessions for which the custom info title will
+        be visible.
+        :param info_title: The message to be added on the ussd menu info title.
+        :param sessions_visible: number of times the info title will be visible.
+        :return:
+        """
+        self.ussd_menu_info_title_configs = {
+            'info_title': info_title,
+            'sessions_visible': sessions_visible
+        }
 
     def __init__(self, blockchain_address=None, **kwargs):
         super(User, self).__init__(**kwargs)

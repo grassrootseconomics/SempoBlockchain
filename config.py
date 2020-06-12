@@ -360,6 +360,7 @@ POLIPAYMENTS_MERCHANT = common_secrets_parser['POLIPAYMENTS']['merchant_code']
 POLIPAYMENTS_AUTH     = common_secrets_parser['POLIPAYMENTS']['auth_code']
 
 USSD_VALID_SERVICE_CODE = config_parser['USSD'].get('valid_service_code')
+USSD_INFO_TITLE_DISPLAY_SESSIONS = config_parser['USSD'].getint('info_title_display_sessions', fallback=5)
 
 try:
     NAMESCAN_KEY    = common_secrets_parser['NAMESCAN']['key']

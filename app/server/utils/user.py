@@ -422,6 +422,7 @@ def proccess_create_or_modify_user_request(
     phone = attribute_dict.get('phone')
 
     referred_by = attribute_dict.get('referred_by')
+    ussd_menu_info_title = attribute_dict.get('ussd_menu_info_title')
 
     blockchain_address = attribute_dict.get('blockchain_address')
 
@@ -608,6 +609,8 @@ def proccess_create_or_modify_user_request(
                 user.referred_by.append(referred_by_user)
 
             set_custom_attributes(attribute_dict, user)
+            user.set_ussd_menu_info_title(info_title=ussd_menu_info_title,
+                                          sessions_visible=config.USSD_INFO_TITLE_DISPLAY_SESSIONS)
             flag_modified(user, "custom_attributes")
 
             db.session.commit()

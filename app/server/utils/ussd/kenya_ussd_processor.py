@@ -76,6 +76,29 @@ class KenyaUssdProcessor:
 
         user = ussd_session.user
 
+        if menu.name == 'start':
+            # get user balance
+            balance = int(float(cents_to_dollars(user.default_transfer_account.balance)))
+            # get default info title
+            default_info_title = i18n_for(user,
+                                          'ussd.kenya.default_info_title',
+                                          balance=balance,
+                                          token_name=default_token(user).symbol).rstrip("\n")
+
+            # check if there's a valid info title:
+            info_title_configs = user.ussd_menu_info_title_configs
+            if info_title_configs and info_title_configs['sessions_visible'] > 0:
+                # decrement sessions visible by 1 and update configs
+                sessions_visible = info_title_configs['sessions_visible'] - 1
+                # update info title configs
+                user.set_ussd_menu_info_title(info_title=info_title_configs['info_title'],
+                                              sessions_visible=sessions_visible)
+                # define custom info title with balance
+                info_title_with_balance = f"{info_title_configs['info_title']}. {default_info_title}"
+                return i18n_for(user, menu.display_key, info_title=info_title_with_balance)
+            default_info_title = f'Sarafu Network: {default_info_title}'
+            return i18n_for(user, menu.display_key, info_title=default_info_title)
+
         if menu.name == 'about_me':
             bio = next(filter(lambda x: x.name == 'bio', user.custom_attributes), None)
             first_name = user.first_name
