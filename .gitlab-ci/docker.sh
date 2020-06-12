@@ -14,20 +14,19 @@ build_image() {
 push_image() {
   TAG=$1
 
-  docker tag server:latest grassrootseconomics/server:${TAG}
-  docker push grassrootseconomics/server:${TAG}
+  docker tag server:latest ${REGISTRY}/server:${TAG}
+  docker push ${REGISTRY}/server:${TAG}
   
-  docker tag eth_worker:latest grassrootseconomics/eth_worker:${TAG}
-  docker push grassrootseconomics/eth_worker:${TAG}
+  docker tag eth_worker:latest ${REGISTRY}/eth_worker:${TAG}
+  docker push ${REGISTRY}/eth_worker:${TAG}
 
-  docker tag pgbouncer:latest grassrootseconomics/pgbouncer:${TAG}
-  docker push grassrootseconomics/pgbouncer:${TAG}
+  docker tag pgbouncer:latest ${REGISTRY}/pgbouncer:${TAG}
+  docker push ${REGISTRY}/pgbouncer:${TAG}
 }
 
 GIT_HASH=$(git rev-parse --short HEAD)
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 
-# push_image $GIT_HASH
 if [ $BRANCH_NAME == "master" ]
 then
   build_image $GIT_HASH

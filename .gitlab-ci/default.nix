@@ -1,5 +1,8 @@
 { pkgs ? import <nixpkgs> {} }:
 
+# nix-build default.nix | cachix push ge-devops
+# cachix use ge-devops
+
 let
   commitRev = "025deb80b2412e5b7e88ea1de631d1bd65af1840";
   nixpkgs = builtins.fetchTarball {
@@ -11,6 +14,7 @@ in
 pkgs.buildEnv {
   name = "build-env";
   paths = with pkgs; [
+    bash
     docker
     docker_compose
     kubectl

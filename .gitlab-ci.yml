@@ -1,6 +1,6 @@
 include:
-  # - .gitlab-ci-test.yml
-  - .gitlab-ci-deploy.yml
+  - .gitlab-ci-test.yml
+  - .gitlab-ci-build.yml
 
 image: $REGISTRY_DEVELOPMENT/build-env:latest
 
@@ -13,8 +13,9 @@ variables:
 
 default:
   before_script:
-    - cachix use sarafu-dev
+    - cachix use ge-devops
     - nix-shell .gitlab-ci/shell.nix
 
 stages:
-  - docker
+  - test
+  - build
