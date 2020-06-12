@@ -44,7 +44,7 @@ directory_listing_other_state = partial(UssdSessionFactory, state="directory_lis
      # account_management state tests
      (account_management_state, standard_user, "1", "user_profile"),
      (account_management_state, standard_user, "2", "choose_language"),
-     (account_management_state, standard_user, "3", "balance_inquiry_pin_authorization"),
+     (account_management_state, standard_user, "3", "mini_statement_inquiry_pin_authorization"),
      (account_management_state, standard_user, "4", "current_pin"),
      (account_management_state, standard_user, "5", "opt_out_of_market_place_pin_authorization"),
      (account_management_state, standard_user, "6", "exit_invalid_menu_option"),

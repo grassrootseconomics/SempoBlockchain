@@ -11,7 +11,6 @@ from server.models.transfer_usage import TransferUsage
 from server.models.transfer_account import TransferAccount, TransferAccountType
 from server.models.organisation import Organisation
 from server.models.token import Token, TokenType
-from server.exceptions import TransferUsageNameDuplicateException
 
 
 def print_section_title(text):
@@ -132,6 +131,12 @@ def create_ussd_menus():
     update_or_create_menu(
         name='balance_inquiry_pin_authorization',
         description='PIN authorization before Balance enquiry',
+        parent_id=account_management_menu.id
+    )
+    update_or_create_menu(
+        name='mini_statement_inquiry_pin_authorization',
+        description='PIN authorization before mini-statement with balance is sent.'
+                    ' enquiry',
         parent_id=account_management_menu.id
     )
     update_or_create_menu(

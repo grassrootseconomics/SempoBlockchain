@@ -33,7 +33,8 @@ opt_out_of_market_place_pin_authorization_state = partial(UssdSessionFactory,
                                                           state="opt_out_of_market_place_pin_authorization")
 exchange_token_pin_authorization_state = partial(UssdSessionFactory, state="exchange_token_pin_authorization")
 exchange_rate_pin_authorization_state = partial(UssdSessionFactory, state="exchange_rate_pin_authorization")
-balance_inquiry_pin_authorization_state = partial(UssdSessionFactory, state="balance_inquiry_pin_authorization")
+mini_statement_inquiry_pin_authorization_state = partial(UssdSessionFactory,
+                                                         state="mini_statement_inquiry_pin_authorization")
 
 
 @pytest.mark.parametrize("session_factory, user_factory, user_input, expected",
@@ -75,12 +76,10 @@ def test_kenya_state_machine(test_client, init_database, user_factory, session_f
      (send_token_pin_authorization_state, standard_user, "0000", "exit_successful_send_token", 1, 0),
      (send_token_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
      (send_token_pin_authorization_state, standard_user, "0000", "exit_successful_send_token", 2, 0),
-     # balance inquiry pin auth combinations
-     (balance_inquiry_pin_authorization_state, pin_blocked_user, "1212", "exit_pin_blocked", 3, 3),
-     (balance_inquiry_pin_authorization_state, standard_user, "1212", "balance_inquiry_pin_authorization", 1, 2),
-     (balance_inquiry_pin_authorization_state, standard_user, "0000", "complete", 1, 0),
-     (balance_inquiry_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
-     (balance_inquiry_pin_authorization_state, standard_user, "0000", "complete", 2, 0),
+     # balance mini statement pin auth combinations
+     (mini_statement_inquiry_pin_authorization_state, pin_blocked_user, "1212", "exit_pin_blocked", 3, 3),
+     (mini_statement_inquiry_pin_authorization_state, standard_user, "1212", "mini_statement_inquiry_pin_authorization", 1, 2),
+     (mini_statement_inquiry_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
      # exchange token pin auth combinations
      (exchange_token_pin_authorization_state, pin_blocked_user, "1111", "exit_pin_blocked", 3, 3),
      (exchange_token_pin_authorization_state, standard_user, "1212", "exchange_token_pin_authorization", 1, 2),
