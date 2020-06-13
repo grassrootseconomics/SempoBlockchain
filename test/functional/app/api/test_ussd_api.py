@@ -107,7 +107,7 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     assert get_session() is None
     resp = req("", test_client, sender.phone)
     assert get_session() is not None
-    assert "CON Welcome" in resp
+    assert "CON Sarafu Network:" in resp
 
     resp = req("1", test_client, sender.phone)
     assert "CON Enter Phone" in resp
@@ -245,6 +245,8 @@ def test_reset_pin_flow(test_client,
                        failed_pin_attempts=0,
                        preferred_language="en",
                        registration_method=RegistrationMethodEnum.USSD_SIGNUP)
+    token = Token.query.filter_by(symbol="SM1").first()
+    create_transfer_account_for_user(user, token, 100)
 
     # bind user to organisation
     user.add_user_to_organisation(organisation, False)
@@ -272,4 +274,4 @@ def test_reset_pin_flow(test_client,
     assert "CON Enter your PIN again" in ussd_resp
 
     ussd_resp = req("1212", test_client, user.phone, session_id=other_session_id)
-    assert "CON Welcome to Sarafu" in ussd_resp
+    assert "CON Sarafu Network" in ussd_resp
