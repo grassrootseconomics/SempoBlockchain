@@ -223,6 +223,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 AWS_SES_KEY_ID = common_secrets_parser['AWS']['ses_key_id']
 AWS_SES_SECRET = common_secrets_parser['AWS']['ses_secret']
+AWS_REGION = os.environ.get('AWS_REGION')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_HAVE_CREDENTIALS = AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY

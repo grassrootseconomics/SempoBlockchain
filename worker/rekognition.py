@@ -7,7 +7,7 @@ class Rekogniser(object):
 
     def __init__(self):
         self.client = boto3.client('rekognition',
-                                   region_name='us-east-1',
+                                   region_name=config.AWS_REGION,
                                    aws_access_key_id=config.AWS_SES_KEY_ID,
                                    aws_secret_access_key=config.AWS_SES_SECRET)
 
