@@ -7,6 +7,10 @@ build:
     PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_BUILD_REF_NAME
   script:
+    - cachix use sarafu-dev
+    - nix-shell
+    - ./vagrant/node_install.sh
+    - ./vagrant/node_build.sh
     - ./.gitlab-ci/docker.sh
   only:
     - master
