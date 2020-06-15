@@ -29,6 +29,8 @@ BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 
 echo "Building git hash $GIT_HASH and branch name $BRANCH_NAME"
 
+docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
 if [ $BRANCH_NAME == "master" ]
 then
   build_image $GIT_HASH
