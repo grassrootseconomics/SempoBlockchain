@@ -27,10 +27,13 @@ push_image() {
 GIT_HASH=$(git rev-parse --short HEAD)
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 
+echo "Building git hash $GIT_HASH and branch name $BRANCH_NAME"
+
 if [ $BRANCH_NAME == "master" ]
 then
   build_image $GIT_HASH
   push_image $GIT_HASH
 else
   build_image $GIT_HASH
+  push_image $GIT_HASH
 fi
