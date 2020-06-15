@@ -9,8 +9,7 @@ build:
   script:
     - cachix use sarafu-dev
     - nix-shell
-    - ./vagrant/node_install.sh
-    - ./vagrant/node_build.sh
+    - ./vagrant/pipeline.sh
     - ./.gitlab-ci/docker.sh
   only:
     - master
