@@ -25,7 +25,6 @@ class UserLocationAPI(MethodView):
         """
         u = ExtendedUser.query.get(user_id)
         logg.debug('user {} -> {}'.format(user_id, u))
-        #u = db.session.query(ExtendedUser).get(user_id)
 
         response_object={
             'user_id': user_id,

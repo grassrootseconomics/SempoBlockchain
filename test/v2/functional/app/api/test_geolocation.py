@@ -62,21 +62,9 @@ def test_get_legacy_location(
             )
 
     assert response.status_code == 200
-    assert response.json['data']['lat'] == param_latitude
-    assert response.json['data']['lng'] == param_longitude
-    assert response.json['data']['location'] == param_common_name
-
-    response = test_client.delete(
-            '/api/v2/geolocation/legacy/user/42/',
-            headers=dict(
-                Authorization=auth,
-                Accept='application/json',
-                ),
-            )
-
-    assert response.status_code == 204
-    assert user._location == None
-
+    assert response.json['lat'] == param_latitude
+    assert response.json['lng'] == param_longitude
+    assert response.json['location'] == param_common_name
 
 
 def test_get_existing_location_by_name(

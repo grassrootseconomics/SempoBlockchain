@@ -17,8 +17,15 @@ def update(user_id : int, fields : dict):
     if u == None:
         raise ValueError('user id {} not found'.format(user_id))
 
+    user_location = Location.query.get(fields['location_id'])
+    if user_location == None:
+        raise ValueError('unknown location id {}'.format(fields['location_id']))
+
     if fields.get('location_id') != None:
         update_user_location(u, fields['location_id'])
+        u._location = user_location.common_name
+        u.latitude = user_location.latitude
+        u.longitude = user_location.longitude
         
     db.session.add(u)
     db.session.commit()
