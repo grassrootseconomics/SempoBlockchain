@@ -14,6 +14,7 @@ VERSION = '1.1.28'  # Remember to bump this in every PR
 logg.info('Loading configs at UTC {}'.format(datetime.datetime.utcnow()))
 
 CONFIG_DIR = os.path.abspath(os.path.dirname(__file__))
+SYSTEM_DIR = CONFIG_DIR
 
 # ENV_DEPLOYMENT_NAME: dev, 'acmecorp-prod' etc
 ENV_DEPLOYMENT_NAME = os.environ.get('DEPLOYMENT_NAME') or 'local'
@@ -124,6 +125,7 @@ IS_TEST = config_parser['APP'].getboolean('IS_TEST', False)
 IS_PRODUCTION = config_parser['APP'].getboolean('IS_PRODUCTION')
 if IS_PRODUCTION is None:
     raise KeyError("IS_PRODUCTION key not found")
+HAS_LIVE_SMS = config_parser['APP'].getboolean('HAS_LIVE_SMS', False)
 
 PROGRAM_NAME        = config_parser['APP']['PROGRAM_NAME']
 
@@ -423,3 +425,12 @@ GITLAB_HOST = config_parser['GITLAB'].get('host')
 GITLAB_URL_PATH = config_parser['GITLAB'].get('path')
 GITLAB_BRANCH = config_parser['GITLAB'].get('branch')
 GITLAB_FILEPATH = config_parser['GITLAB'].get('filepath')
+
+SYSTEM_DIR_VAR = os.path.join(SYSTEM_DIR, 'var')
+
+# create all missing directories
+dirs = [
+        os.path.join(SYSTEM_DIR_VAR, 'sms')
+    ]
+for d in dirs:
+    os.makedirs(d, 0o777, True)
