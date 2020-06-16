@@ -67,7 +67,7 @@ class S3(FileSyncer):
         super(S3, self).__init__(source_path, destination_path, self._getfunc)
         if key == None or secret == None:
             session = boto3.Session(
-                region                  = region,
+                region_name             = region,
                 aws_access_key_id       = key,
                 aws_secret_access_key   = secret,
             )
