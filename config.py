@@ -426,11 +426,13 @@ GITLAB_URL_PATH = config_parser['GITLAB'].get('path')
 GITLAB_BRANCH = config_parser['GITLAB'].get('branch')
 GITLAB_FILEPATH = config_parser['GITLAB'].get('filepath')
 
-SYSTEM_DIR_VAR = os.path.join(SYSTEM_DIR, 'var')
-
-# create all missing directories
-dirs = [
-        os.path.join(SYSTEM_DIR_VAR, 'sms')
-    ]
-for d in dirs:
-    os.makedirs(d, 0o777, True)
+# register and create all missing directories
+SYSTEM_PATH = {}
+SYSTEM_PATH['var'] = os.path.join(SYSTEM_DIR, 'var')
+os.makedirs(SYSTEM_PATH['var'], 0o777, True)
+dirs = {
+        'sms': os.path.join(SYSTEM_PATH['var'], 'sms'),
+    }
+for k in dirs.keys():
+    SYSTEM_PATH[k] = dirs[k]
+    os.makedirs(SYSTEM_PATH[k], 0o777, True)

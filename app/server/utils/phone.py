@@ -95,7 +95,7 @@ def _send_at_message(to_phone, message):
                 [to_phone])
 
 def send_fs_message(to_phone, message):
-        sms_dir = os.path.join(current_app.config['SYSTEM_DIR_VAR'], "sms")
+        sms_dir = os.path.join(current_app.config['SYSTEM_PATH']['sms'])
         sms_number = to_phone
         if sms_number[0] == '+':
             sms_number = sms_number[1:]
