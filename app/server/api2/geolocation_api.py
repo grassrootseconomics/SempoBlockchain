@@ -3,7 +3,7 @@ import logging
 import os
 
 # third party imports
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, make_response, jsonify, g
 from flask.views import MethodView
 
 # platform imports
@@ -157,6 +157,7 @@ class LocationAPI(MethodView):
 
 
     # TODO: This method is too long and should be divided up for clarity
+    @requires_auth
     def post(self):
         """Commits the given location entry to the database.
 
