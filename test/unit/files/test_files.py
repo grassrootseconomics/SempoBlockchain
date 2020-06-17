@@ -23,7 +23,6 @@ def test_s3():
     fs = S3(
            config.TEST_BUCKET,
            randomfilename,
-           region=config.AWS_REGION,
            key=config.AWS_SES_KEY_ID,
            secret=config.AWS_SES_SECRET
            )

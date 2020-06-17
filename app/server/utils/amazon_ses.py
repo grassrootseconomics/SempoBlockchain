@@ -2,7 +2,6 @@ import boto3, jinja2, os
 from urllib import parse
 from flask import request, current_app
 from server import pusher_client, executor
-import config
 
 def send_transfer_update_email(email_address, transfer_info, latest_status):
     TEXT_TEMPLATE_FILE = 'transfer_update_email.txt'
@@ -111,6 +110,7 @@ def get_email_template(TEMPLATE_FILE):
 def ses_email_handler(recipient, subject, textbody, htmlbody = None):
     sender = "admin@withsempo.com"
 
+    awsregion = "us-west-2"
     htmlbody = htmlbody or textbody
     charset = "UTF-8"
 
@@ -125,9 +125,9 @@ def ses_email_handler(recipient, subject, textbody, htmlbody = None):
 
         # Create a new SES resource and specify a region.
         client = boto3.client('ses',
-                              aws_access_key_id=current_app.config['AWS_SES_KEY_ID'],
-                              aws_secret_access_key=current_app.config['AWS_SES_SECRET'],
-                              region_name=config.AWS_REGION)
+                            aws_access_key_id= current_app.config['AWS_SES_KEY_ID'],
+                            aws_secret_access_key=current_app.config['AWS_SES_SECRET'],
+                              region_name=awsregion)
 
         # Try to send the email.
         try:
