@@ -94,6 +94,10 @@ def _send_at_message(to_phone, message):
                 message,
                 [to_phone])
 
+@executor.job
+def _send_fs_message(to_phone, message):
+    return send_fs_message(to_phone, message)
+
 def send_fs_message(to_phone, message):
         sms_dir = os.path.join(current_app.config['SYSTEM_PATH']['sms'])
         sms_number = to_phone
@@ -118,5 +122,5 @@ def send_message(to_phone, message):
         if channel == ChannelType.AFRICAS_TALKING:
             _send_at_message.submit(to_phone, message)
     else:
-        send_fs_message(to_phone, message)
+        _send_fs_message.submit(to_phone, message)
         #print(f'"IS NOT PRODUCTION", not sending SMS:\n{message}')
