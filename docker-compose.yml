@@ -108,7 +108,7 @@ services:
 
   ganache:
     image: "trufflesuite/ganache-cli:v6.9.1"
-    command: "-l 80000000 -i 42 ${GANACHE_ACCOUNT_COMMAND}"
+    command: "-l 80000000 -i 42 -e 1000 ${GANACHE_ACCOUNT_COMMAND}"
     environment:
       GANACHE_ACCOUNT_COMMAND: $GANACHE_ACCOUNT_COMMAND
 #  beat:
