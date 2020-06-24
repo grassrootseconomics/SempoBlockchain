@@ -90,6 +90,7 @@ def test_set_user_location(
     # get admin auth token
     auth = get_complete_auth_token(authed_sempo_admin_user)
 
+    assert user._location == None
     response = test_client.put(
             '/api/v2/user/{}/geolocation/'.format(user.id),
             headers=dict(
@@ -105,3 +106,6 @@ def test_set_user_location(
 
     assert response.status_code == 204
     assert user.full_location == new_locations['leaf']
+    assert user._location == new_locations['leaf'].common_name
+    assert user.latitude == new_locations['leaf'].latitude
+    assert user.longitude == new_locations['leaf'].longitude
