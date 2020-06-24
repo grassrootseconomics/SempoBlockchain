@@ -467,7 +467,6 @@ def mock_sms_apis(mocker):
     mocker.patch('server.utils.phone._send_twilio_message.submit', mock_sms_api)
     mocker.patch('server.utils.phone._send_messagebird_message.submit', mock_sms_api)
     mocker.patch('server.utils.phone._send_at_message.submit', mock_sms_api)
-    mocker.patch('server.utils.phone._send_fs_message.submit', mock_sms_api)
 
     return messages
 

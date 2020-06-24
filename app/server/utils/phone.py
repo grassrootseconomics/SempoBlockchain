@@ -10,6 +10,8 @@ logg = logging.getLogger()
 
 from flask import current_app, g
 from server import twilio_client, messagebird_client, africastalking_client, executor
+from server import db
+from share.models.notification import Notification
 
 def proccess_phone_number(phone_number, region=None, ignore_region=False):
     """
@@ -95,24 +97,29 @@ def _send_at_message(to_phone, message):
                 [to_phone])
 
 @executor.job
-def _send_fs_message(to_phone, message):
-    return send_fs_message(to_phone, message)
+def _send_log_message(to_phone, message):
+    return send_log_message(to_phone, message)
 
-def send_fs_message(to_phone, message):
-        sms_dir = os.path.join(current_app.config['SYSTEM_PATH']['sms'])
-        sms_number = to_phone
-        if sms_number[0] == '+':
-            sms_number = sms_number[1:]
-        sms_file = '{}_{}'.format(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'), sms_number)
-        sms_path = os.path.join(sms_dir, sms_file)
-        fd = open(sms_path, 'w', -1, 'utf-8');
-        logg.debug('{}'.format(fd))
-        fd.write(message)
-        fd.close()
+def send_log_message(to_phone, message):
+    n = Notification(NotificationTransportEnum.SMS, to_phone, message)
+    db.session.add(n)
+    db.session.commit()
+
+
+#def send_fs_message(to_phone, message):
+#        sms_dir = os.path.join(current_app.config['SYSTEM_PATH']['sms'])
+#        sms_number = to_phone
+#        if sms_number[0] == '+':
+#            sms_number = sms_number[1:]
+#        sms_file = '{}_{}'.format(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'), sms_number)
+#        sms_path = os.path.join(sms_dir, sms_file)
+#        fd = open(sms_path, 'w', -1, 'utf-8');
+#        logg.debug('{}'.format(fd))
+#        fd.write(message)
+#        fd.close()
 
 def send_message(to_phone, message):
-    #if current_app.config['IS_TEST'] or current_app.config['IS_PRODUCTION']:
-    if current_app.config['HAS_LIVE_SMS']:
+    if current_app.config['IS_TEST'] or current_app.config['IS_PRODUCTION']:
         channel = channel_for_number(to_phone)
         print(f'Sending SMS via {channel}')
         if channel == ChannelType.TWILIO:
@@ -121,6 +128,5 @@ def send_message(to_phone, message):
             _send_messagebird_message.submit(to_phone, message)
         if channel == ChannelType.AFRICAS_TALKING:
             _send_at_message.submit(to_phone, message)
-    else:
-        _send_fs_message.submit(to_phone, message)
-        #print(f'"IS NOT PRODUCTION", not sending SMS:\n{message}')
+    _send_log_message.submit(to_phone, message)
+    logg.debug('"IS NOT PRODUCTION", not sending SMS:'.format(message))
