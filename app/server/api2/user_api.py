@@ -2,13 +2,14 @@
 import logging
 
 # third party imports
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, make_response, jsonify, g
 from flask.views import MethodView
 
 # platform imports
 from server import db
 from share.models.user import ExtendedUser
 from server.utils.auth import requires_auth
+from server.utils.access_control import AccessControl
 from share import user as extended_user
 
 logg = logging.getLogger()
@@ -20,9 +21,15 @@ class UserLocationAPI(MethodView):
     Documentation is brief since it implmements standard flask blueprint interface
     """
 
+    @requires_auth
     def get(self, user_id):
         """gets the stored location for the given user
         """
+        if not AccessControl.has_suffient_role(g.user.roles, {'ADMIN': 'subadmin'}):
+            return make_response(jsonify({
+                'message': 'no clearance, clarence',
+                }), 403)
+
         u = ExtendedUser.query.get(user_id)
         logg.debug('user {} -> {}'.format(user_id, u))
         #u = db.session.query(ExtendedUser).get(user_id)
@@ -43,7 +50,13 @@ class UserLocationAPI(MethodView):
         return make_response(jsonify(response_object)), 200
 
 
+    @requires_auth
     def put(self, user_id):
+        if not AccessControl.has_suffient_role(g.user.roles, {'ADMIN': 'admin'}):
+            return make_response(jsonify({
+                'message': 'no clearance, clarence',
+                }), 403)
+
         request_data = request.get_json()
         request_data['user_id'] = user_id
 

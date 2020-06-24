@@ -160,12 +160,17 @@ def test_get_existing_location_by_external_id(
 
 def test_add_location_by_name( test_client,
     init_database,
+    authed_sempo_admin_user,
     ):
     """
     GIVEN location data with and without external data
     WHEN added to the database through http api
     THEN the object is retrievable through db
     """
+    # create admin
+    admin = authed_sempo_admin_user
+    admin.set_held_role('ADMIN', 'subadmin')
+    auth = get_complete_auth_token(authed_sempo_admin_user)
 
     parent = {
         'common_name': 'Catemaco',
@@ -176,6 +181,7 @@ def test_add_location_by_name( test_client,
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(parent),
@@ -199,6 +205,7 @@ def test_add_location_by_name( test_client,
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(child),
@@ -219,8 +226,15 @@ def test_add_location_by_name( test_client,
 
 def test_add_location_fail_duplicate(
         test_client,
-        init_database
+        init_database,
+        authed_sempo_admin_user,
         ):
+
+    # create admin
+    admin = authed_sempo_admin_user
+    admin.set_held_role('ADMIN', 'subadmin')
+    auth = get_complete_auth_token(authed_sempo_admin_user)
+
 
     parent = {
         'common_name': 'Catemaco',
@@ -231,6 +245,7 @@ def test_add_location_fail_duplicate(
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(parent),
@@ -255,6 +270,7 @@ def test_add_location_fail_duplicate(
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(child),
@@ -267,6 +283,7 @@ def test_add_location_fail_duplicate(
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(child),
@@ -282,6 +299,7 @@ def test_add_location_fail_duplicate(
     response = test_client.post(
         '/api/v2/geolocation/',
         headers=dict(
+            Authorization=auth,
             Accept='application/json',
             ),
         data=json.dumps(child),
