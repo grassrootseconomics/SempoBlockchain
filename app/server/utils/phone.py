@@ -12,6 +12,7 @@ from flask import current_app, g
 from server import twilio_client, messagebird_client, africastalking_client, executor
 from server import db
 from share.models.notification import Notification
+from share.notification.enum import NotificationTransportEnum
 
 def proccess_phone_number(phone_number, region=None, ignore_region=False):
     """

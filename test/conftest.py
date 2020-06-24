@@ -464,9 +464,13 @@ def mock_sms_apis(mocker):
     def mock_sms_api(phone, message):
         messages.append({'phone': phone, 'message': message})
 
+    def mock_sms_api_nocount(phone, message):
+        pass
+
     mocker.patch('server.utils.phone._send_twilio_message.submit', mock_sms_api)
     mocker.patch('server.utils.phone._send_messagebird_message.submit', mock_sms_api)
     mocker.patch('server.utils.phone._send_at_message.submit', mock_sms_api)
+    mocker.patch('server.utils.phone._send_log_message.submit', mock_sms_api_nocount)
 
     return messages
 
