@@ -40,9 +40,8 @@ def test_sms_list(test_client, init_database, authed_sempo_admin_user):
     assert response.status_code == 200
     assert len(response.json) == 3
 
-    # TODO implement user filter
     response = test_client.get(
-            '/api/v2/sms/{}/'.format(authed_sempo_admin_user.id),
+            '/api/v2/sms/user/{}/'.format(authed_sempo_admin_user.id),
             headers=dict(
                 Authorization=auth,
                 Accept='application/json',
@@ -52,7 +51,6 @@ def test_sms_list(test_client, init_database, authed_sempo_admin_user):
     assert response.status_code == 200
     assert len(response.json) == 1
 
-    # TODO implement user filter
     response = test_client.get(
             '/api/v2/sms/{}/'.format(float_phone),
             headers=dict(
