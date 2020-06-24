@@ -105,19 +105,6 @@ def send_log_message(to_phone, message):
     db.session.add(n)
     db.session.commit()
 
-
-#def send_fs_message(to_phone, message):
-#        sms_dir = os.path.join(current_app.config['SYSTEM_PATH']['sms'])
-#        sms_number = to_phone
-#        if sms_number[0] == '+':
-#            sms_number = sms_number[1:]
-#        sms_file = '{}_{}'.format(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'), sms_number)
-#        sms_path = os.path.join(sms_dir, sms_file)
-#        fd = open(sms_path, 'w', -1, 'utf-8');
-#        logg.debug('{}'.format(fd))
-#        fd.write(message)
-#        fd.close()
-
 def send_message(to_phone, message):
     if current_app.config['IS_TEST'] or current_app.config['IS_PRODUCTION']:
         channel = channel_for_number(to_phone)

@@ -125,7 +125,6 @@ IS_TEST = config_parser['APP'].getboolean('IS_TEST', False)
 IS_PRODUCTION = config_parser['APP'].getboolean('IS_PRODUCTION')
 if IS_PRODUCTION is None:
     raise KeyError("IS_PRODUCTION key not found")
-HAS_LIVE_SMS = config_parser['APP'].getboolean('HAS_LIVE_SMS', False)
 
 PROGRAM_NAME        = config_parser['APP']['PROGRAM_NAME']
 
