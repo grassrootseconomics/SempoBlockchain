@@ -53,9 +53,9 @@ class GetSMSLog(MethodView):
 
         if limit > 0:
             q = q.limit(limit)
-      
+     
         response = []
-        notifications = q.all()
+        notifications = q.order_by(Notification.updated.desc()).all()
         for n in notifications:
             response.append({
                 'datetime': n.created,
