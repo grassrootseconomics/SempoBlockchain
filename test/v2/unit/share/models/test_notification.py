@@ -8,6 +8,7 @@ import pytest
 from server import db
 from share.models.notification import Notification
 from share.notification.enum import NotificationTransportEnum
+from share.notification.enum import NotificationStatusEnum
 
 def test_notification(test_client, init_database):
     n = Notification(NotificationTransportEnum.SMS, '+25413243546', 'everything looks bad if you remember it')
@@ -18,3 +19,4 @@ def test_notification(test_client, init_database):
     assert(n1.transport == NotificationTransportEnum.SMS)
     assert(n1.recipient == '+25413243546')
     assert(n1.content == 'everything looks bad if you remember it')
+    assert(n1.status == NotificationStatusEnum.UNSENT)
