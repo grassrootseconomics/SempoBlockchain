@@ -10,15 +10,18 @@ from share.notification.enum import NotificationTransportEnum
 
 logg = logging.getLogger()
 
+
 def test_sms_list(test_client, init_database, authed_sempo_admin_user):
 
     # create admin
     admin = authed_sempo_admin_user
     admin.set_held_role('ADMIN', 'subadmin')
     auth = get_complete_auth_token(authed_sempo_admin_user)
+    authed_sempo_admin_user.phone = '+25413243546'
+    n = Notification(NotificationTransportEnum.SMS, authed_sempo_admin_user.phone, 'i have the best words')
 
-    n = Notification(NotificationTransportEnum.SMS, '+25413243546', 'i have the best words')
     db.session.add(n)
+    db.session.add(authed_sempo_admin_user)
     db.session.commit()
 
     response = test_client.get(
