@@ -1,10 +1,10 @@
 # platform imports
 from server import db
-from server.models.utils import ModelBase
 from share.notification.enum import NotificationStatusEnum
 from share.notification.enum import NotificationTransportEnum
+from share.models.utils import ModelBaseUnauthorized
 
-class Notification(ModelBase):
+class Notification(ModelBaseUnauthorized):
     __tablename__ = 'notification'
 
     transport = db.Column(db.Enum(NotificationTransportEnum))
