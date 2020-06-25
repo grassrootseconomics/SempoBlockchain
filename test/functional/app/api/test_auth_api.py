@@ -277,8 +277,8 @@ def get_admin_default_org_id(admin_user):
 
 
 @pytest.mark.parametrize("creator_tier, email, invitee_tier, organisation_id_selector, response_code", [
-    ('admin', 'foo1@acme.com', 'admin', lambda o: 2, 401),
-    ('admin', 'foo1@acme.com', 'admin', lambda o: None, 201),
+    ('admin', 'foo1@acme.com', 'admin', lambda o: 2, 403),
+    ('admin', 'foo1@acme.com', 'admin', lambda o: None, 403),
     ('sempoadmin', 'foo@acme.com', 'admin', lambda o: 12332, 404),
     ('sempoadmin',  None, 'admin', get_admin_default_org_id, 400),
     ('sempoadmin', 'foo@acme.com', None, get_admin_default_org_id, 400),

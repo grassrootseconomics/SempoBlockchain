@@ -112,7 +112,7 @@ class CreditTransferAPI(MethodView):
 
             if AccessControl.has_sufficient_tier(g.user.roles, 'ADMIN', 'admin'):
                 transfer_list = credit_transfers_schema.dump(transfers).data
-            elif AccessControl.has_sufficient_tier(g.user.roles, 'ADMIN', 'view'):
+            elif AccessControl.has_sufficient_tier(g.user.roles, 'ADMIN', 'view-private'):
                 transfer_list = view_credit_transfers_schema.dump(transfers).data
 
             response_object = {
@@ -128,7 +128,7 @@ class CreditTransferAPI(MethodView):
 
             return make_response(jsonify(response_object)), 200
 
-    @requires_auth(allowed_roles={'ADMIN': 'superadmin'})
+    @requires_auth(allowed_roles={'ADMIN': 'admin'})
     def put(self, credit_transfer_id):
 
         put_data = request.get_json()
@@ -174,10 +174,10 @@ class CreditTransferAPI(MethodView):
 
         return make_response(jsonify(response_object)), 201
 
-    @requires_auth(allowed_roles={'ADMIN': 'admin'})
+    @requires_auth(allowed_roles={'ADMIN': 'subadmin'})
     def post(self, credit_transfer_id):
 
-        auto_resolve = AccessControl.has_sufficient_tier(g.user.roles, 'ADMIN', 'superadmin')
+        auto_resolve = AccessControl.has_sufficient_tier(g.user.roles, 'ADMIN', 'admin')
 
         post_data = request.get_json()
 

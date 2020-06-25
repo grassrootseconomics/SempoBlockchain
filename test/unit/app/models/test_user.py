@@ -34,7 +34,7 @@ def test_update_admin_user_tier(new_sempo_admin_user):
     WHEN a user tier is updated to superadmin
     THEN check that all lower tiers are True
     """
-    new_sempo_admin_user.set_held_role('ADMIN', 'view')
+    new_sempo_admin_user.set_held_role('ADMIN', 'view-public')
 
     assert AccessControl.has_any_tier(new_sempo_admin_user.roles, 'ADMIN')
     assert not AccessControl.has_sufficient_tier(new_sempo_admin_user.roles, 'ADMIN', 'subadmin')
@@ -97,7 +97,7 @@ def test_tfa_required(authed_sempo_admin_user):
     """
     import config
     tiers = config.TFA_REQUIRED_ROLES
-    authed_sempo_admin_user.set_held_role('ADMIN', 'view')
+    authed_sempo_admin_user.set_held_role('ADMIN', 'view-public')
     assert authed_sempo_admin_user.is_TFA_required() is False
     for tier in tiers:
         authed_sempo_admin_user.set_held_role('ADMIN', tier)

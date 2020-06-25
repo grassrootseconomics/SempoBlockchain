@@ -26,7 +26,7 @@ export class InviteFormContainer extends React.Component {
       email: "",
       email_missing: false,
       invalid_request: false,
-      tier: "view"
+      tier: "view-public"
     };
   }
 
@@ -85,7 +85,7 @@ const InviteForm = function(props) {
     error_message = "";
   }
 
-  const tiers = ["superadmin", "admin", "subadmin", "view"];
+  const tiers = ["superadmin", "admin", "subadmin", "view-private", "view-public"];
 
   return (
     <div>

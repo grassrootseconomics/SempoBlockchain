@@ -725,7 +725,7 @@ class PermissionsAPI(MethodView):
 
         return make_response(jsonify(response_object)), 200
 
-    @requires_auth(allowed_roles={'ADMIN': 'admin'})
+    @requires_auth(allowed_roles={'ADMIN': 'superadmin'})
     def post(self):
 
         post_data = request.get_json()
