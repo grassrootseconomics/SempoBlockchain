@@ -301,7 +301,7 @@ class KenyaUssdStateMachine(Machine):
 
     def upsell_unregistered_recipient(self, user_input):
         try:
-            recipient_phone = proccess_phone_number(user_input)
+            recipient_phone = proccess_phone_number(self.session.get_data('recipient_phone'))
         except NumberParseException:
             return None
 
@@ -526,6 +526,12 @@ class KenyaUssdStateMachine(Machine):
     def menu_ten_selected(self, user_input):
         return user_input == '10'
 
+    def menu_zero_zero_selected(self, user_input):
+        return user_input == '00'
+
+    def menu_ninety_nine_selected(self, user_input):
+        return user_input == '99'
+
     # initialize machine
     def __init__(self, session: UssdSession, user: User):
         self.session = session
@@ -640,7 +646,7 @@ class KenyaUssdStateMachine(Machine):
             {'trigger': 'feed_char',
              'source': 'send_enter_recipient',
              'dest': 'exit_invalid_recipient',
-             'after': 'upsell_unregistered_recipient'}
+             'after': 'save_recipient_phone'}
         ]
         self.add_transitions(send_enter_recipient_transitions)
 
@@ -1148,3 +1154,101 @@ class KenyaUssdStateMachine(Machine):
              'dest': 'exit_invalid_menu_option'}
         ]
         self.add_transitions(exchange_token_confirmation_transitions)
+
+        # help transitions
+        self.add_transition(trigger='feed_char',
+                            source='help',
+                            dest='exit',
+                            conditions='menu_nine_selected')
+
+        # exit_invalid_menu_option transitions
+        exit_invalid_menu_option_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_menu_option',
+             'dest': 'start',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_menu_option',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(exit_invalid_menu_option_transitions)
+
+        # exit_use_exchange_menu transitions
+        exit_use_exchange_menu_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_use_exchange_menu',
+             'dest': 'exchange_token',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_use_exchange_menu',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(exit_use_exchange_menu_transitions)
+
+        # exit_invalid_recipient transitions
+        exit_invalid_recipient_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_recipient',
+             'dest': 'send_enter_recipient',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_recipient',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected',
+             'after': 'upsell_unregistered_recipient'}
+        ]
+        self.add_transitions(exit_invalid_recipient_transitions)
+
+        # exit_invalid_token_agent transitions
+        exit_invalid_token_agent_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_token_agent',
+             'dest': 'exchange_token_agent_number_entry',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_token_agent',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(exit_invalid_token_agent_transitions)
+
+        # complete transitions
+        complete_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'complete',
+             'dest': 'start',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'complete',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(complete_transitions)
+
+        # exit_successful_send_token transitions
+        exit_successful_send_token_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_successful_send_token',
+             'dest': 'start',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_successful_send_token',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(exit_successful_send_token_transitions)
+
+        # exit_invalid_input transitions
+        exit_invalid_input_transitions = [
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_input',
+             'dest': 'start',
+             'conditions': 'menu_zero_zero_selected'},
+            {'trigger': 'feed_char',
+             'source': 'exit_invalid_input',
+             'dest': 'exit',
+             'conditions': 'menu_ninety_nine_selected'}
+        ]
+        self.add_transitions(exit_invalid_input_transitions)
