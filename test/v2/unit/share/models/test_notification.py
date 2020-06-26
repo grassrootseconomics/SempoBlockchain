@@ -20,4 +20,4 @@ def test_notification(test_client, init_database):
     assert(n1.transport == NotificationTransportEnum.SMS)
     assert(n1.recipient == '+25413243546')
     assert(n1.content == 'everything looks bad if you remember it')
-    assert(n1.status == NotificationStatusEnum.UNSENT)
+    assert(n1.status == NotificationStatusEnum.UNKNOWN)

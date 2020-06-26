@@ -17,4 +17,4 @@ class Notification(ModelBaseUnauthorized):
         self.transport = transport
         self.recipient = recipient
         self.content = content
-        self.status = NotificationStatusEnum.UNSENT
+        self.status = NotificationStatusEnum.UNKNOWN
