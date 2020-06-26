@@ -119,7 +119,7 @@ def test_golden_path_send_token(mocker, test_client, init_database, initialised_
     assert f"{recipient.user_details()} will receive 12.5 {token.symbol} from {sender.user_details()}" in resp
 
     resp = req("0000", test_client, sender.phone)
-    assert "END Your request has been sent." in resp
+    assert "CON Your request has been sent." in resp
 
     assert default_transfer_account(sender).balance == (4220 - 100 - 100 - 1250)
     assert default_transfer_account(recipient).balance == (1980 + 100 + 100 + 1250)

@@ -3,7 +3,7 @@ from functools import partial
 from faker.providers import phone_number
 from faker import Faker
 
-from helpers.factories import UserFactory, UssdSessionFactory, OrganisationFactory
+from helpers.factories import UserFactory, UssdSessionFactory, OrganisationFactory, TokenFactory
 from helpers.ussd_utils import fake_transfer_mapping
 from server import db
 from server.utils.ussd.kenya_ussd_state_machine import KenyaUssdStateMachine
@@ -25,6 +25,14 @@ my_business_state = partial(UssdSessionFactory, state="my_business")
 choose_language_state = partial(UssdSessionFactory, state="choose_language")
 directory_listing_state = partial(UssdSessionFactory, state="directory_listing")
 directory_listing_other_state = partial(UssdSessionFactory, state="directory_listing_other")
+help_state = partial(UssdSessionFactory, state="help")
+exit_invalid_menu_option_state = partial(UssdSessionFactory, state="exit_invalid_menu_option")
+exit_use_exchange_menu_state = partial(UssdSessionFactory, state="exit_use_exchange_menu")
+exit_invalid_recipient_state = partial(UssdSessionFactory, state="exit_invalid_recipient")
+exit_invalid_token_agent_state = partial(UssdSessionFactory, state="exit_invalid_token_agent")
+complete_state = partial(UssdSessionFactory, state="complete")
+exit_successful_send_token_state = partial(UssdSessionFactory, state="exit_successful_send_token")
+exit_invalid_input_state =  partial(UssdSessionFactory, state="exit_invalid_input")
 
 
 @pytest.mark.parametrize("session_factory, user_factory, user_input, expected",
@@ -72,18 +80,37 @@ directory_listing_other_state = partial(UssdSessionFactory, state="directory_lis
      # choose_language state tests
      (choose_language_state, standard_user, "5", "exit_invalid_menu_option"),
      (choose_language_state, standard_user, "asdf", "exit_invalid_menu_option"),
+     # back options
+     (help_state, standard_user, "9", "exit"),
+     (exit_invalid_menu_option_state, standard_user, "00", "start"),
+     (exit_invalid_menu_option_state, standard_user, "99", "exit"),
+     (exit_use_exchange_menu_state, standard_user, "00", "exchange_token"),
+     (exit_use_exchange_menu_state, standard_user, "99", "exit"),
+     (exit_invalid_recipient_state, standard_user, "00", "send_enter_recipient"),
+     (exit_invalid_recipient_state, standard_user, "99", "exit"),
+     (exit_invalid_token_agent_state, standard_user, "00", "exchange_token_agent_number_entry"),
+     (complete_state, standard_user, "00", "start"),
+     (complete_state, standard_user, "99", "exit"),
+     (exit_successful_send_token_state, standard_user, "00", "start"),
+     (exit_successful_send_token_state, standard_user, "99", "exit"),
+     (exit_invalid_input_state, standard_user, "00", "start"),
+     (exit_invalid_input_state, standard_user, "99", "exit")
  ])
 def test_kenya_state_machine(test_client, init_database, user_factory, session_factory, user_input, expected):
+    token = TokenFactory(name='Sarafu', symbol='SARAFU')
     from flask import g
-    g.active_organisation = OrganisationFactory(country_code='AU')
+    organisation = OrganisationFactory(country_code='AU', token=token)
+    g.active_organisation = organisation
 
     session = session_factory()
     session.session_data = {
         'transfer_usage_mapping': fake_transfer_mapping(10),
         'usage_menu': 1,
-        'usage_index_stack': [0, 8]
+        'usage_index_stack': [0, 8],
+        'recipient_phone': phone()
     }
     user = user_factory()
+    user.default_organisation = organisation
     user.phone = phone()
     db.session.commit()
     state_machine = KenyaUssdStateMachine(session, user)

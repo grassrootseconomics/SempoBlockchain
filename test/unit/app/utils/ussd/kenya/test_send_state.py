@@ -62,8 +62,6 @@ def test_invalid_user_recipient(mocker, test_client, init_database, standard_use
     state_machine.feed_char("1234")
 
     assert state_machine.state == "exit_invalid_recipient"
-    assert session.session_data is None
-
 
 def test_invalid_recipient(
         mocker, test_client, init_database, standard_user, create_transfer_account_user, external_reserve_token
@@ -77,8 +75,7 @@ def test_invalid_recipient(
     state_machine.feed_char(invalid_recipient_phone)
 
     assert state_machine.state == "exit_invalid_recipient"
-    assert session.session_data is None
-
+    state_machine.feed_char("99")
     state_machine.send_sms.assert_called_with(
         invalid_recipient_phone,
         "upsell_message_recipient",
@@ -100,7 +97,6 @@ def test_invalid_phone_number(
     state_machine.feed_char(invalid_recipient_phone)
 
     assert state_machine.state == "exit_invalid_recipient"
-    assert session.session_data is None
 
     assert not state_machine.send_sms.called
 
