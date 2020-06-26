@@ -1,7 +1,7 @@
 import enum
 
 class NotificationStatusEnum(enum.Enum):
-    UNSENT = 'UNSENT'
+    UNKNOWN = 'UNKNOWN'
 
 class NotificationTransportEnum(enum.Enum):
     SMS = 'SMS'
