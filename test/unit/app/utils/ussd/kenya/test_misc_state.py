@@ -9,6 +9,7 @@ from server import db
 from server.utils.ussd.kenya_ussd_state_machine import KenyaUssdStateMachine
 from server.models.user import User
 from server.models.transfer_usage import TransferUsage
+import config
 
 fake = Faker()
 fake.add_provider(phone_number)
@@ -99,7 +100,7 @@ exit_invalid_input_state =  partial(UssdSessionFactory, state="exit_invalid_inpu
 def test_kenya_state_machine(test_client, init_database, user_factory, session_factory, user_input, expected):
     token = TokenFactory(name='Sarafu', symbol='SARAFU')
     from flask import g
-    organisation = OrganisationFactory(country_code='AU', token=token)
+    organisation = OrganisationFactory(country_code=config.DEFAULT_COUNTRY, token=token)
     g.active_organisation = organisation
 
     session = session_factory()
