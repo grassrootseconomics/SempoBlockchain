@@ -41,6 +41,17 @@ def test_sms_list(test_client, init_database, authed_sempo_admin_user):
     assert len(response.json) == 3
 
     response = test_client.get(
+            '/api/v2/sms/?limit=2',
+            headers=dict(
+                Authorization=auth,
+                Accept='application/json',
+                ),
+            )
+
+    assert response.status_code == 200
+    assert len(response.json) == 2
+
+    response = test_client.get(
             '/api/v2/sms/user/{}/'.format(authed_sempo_admin_user.id),
             headers=dict(
                 Authorization=auth,

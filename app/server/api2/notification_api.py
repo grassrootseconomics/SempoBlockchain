@@ -3,7 +3,7 @@ import os
 import time
 
 # third party imports
-from flask import Blueprint, make_response, jsonify, current_app
+from flask import Blueprint, make_response, jsonify, current_app, request
 from flask.views import MethodView
 
 # platform imports
@@ -23,6 +23,8 @@ class GetSMSLog(MethodView):
     def get(self, **kwargs):
 
         limit = 0
+        if request.args.get('limit') != None:
+            limit = int(request.args.get('limit'))
 
         phone = kwargs.get('phone')
         try:
@@ -51,11 +53,13 @@ class GetSMSLog(MethodView):
         if phone != None:
             q = q.filter(Notification.recipient == phone)
 
+        q = q.order_by(Notification.updated.desc())
+
         if limit > 0:
             q = q.limit(limit)
      
         response = []
-        notifications = q.order_by(Notification.updated.desc()).all()
+        notifications = q.all()
         for n in notifications:
             response.append({
                 'datetime': n.created,
