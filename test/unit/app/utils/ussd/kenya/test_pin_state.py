@@ -32,7 +32,6 @@ new_pin_confirmation_state = partial(UssdSessionFactory, state="new_pin_confirma
 opt_out_of_market_place_pin_authorization_state = partial(UssdSessionFactory,
                                                           state="opt_out_of_market_place_pin_authorization")
 exchange_token_pin_authorization_state = partial(UssdSessionFactory, state="exchange_token_pin_authorization")
-exchange_rate_pin_authorization_state = partial(UssdSessionFactory, state="exchange_rate_pin_authorization")
 balance_inquiry_pin_authorization_state = partial(UssdSessionFactory, state="balance_inquiry_pin_authorization")
 
 
@@ -87,12 +86,6 @@ def test_kenya_state_machine(test_client, init_database, user_factory, session_f
      (exchange_token_pin_authorization_state, standard_user, "0000", "exchange_token_confirmation", 1, 0),
      (exchange_token_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
      (exchange_token_pin_authorization_state, standard_user, "0000", "exchange_token_confirmation", 2, 0),
-     # exchange rate pin auth combinations
-     (exchange_rate_pin_authorization_state, pin_blocked_user, "1111", "exit_pin_blocked", 3, 3),
-     (exchange_rate_pin_authorization_state, standard_user, "1212", "exchange_rate_pin_authorization", 1, 2),
-     (exchange_rate_pin_authorization_state, standard_user, "0000", "complete", 1, 0),
-     (exchange_rate_pin_authorization_state, standard_user, "1212", "exit_pin_blocked", 2, 3),
-     (exchange_rate_pin_authorization_state, standard_user, "0000", "complete", 2, 0),
  ])
 def test_authorize_pin(test_client, init_database, session_factory, user_factory, user_input, expected,
                        before_failed_pin_attempts, after_failed_pin_attempts):

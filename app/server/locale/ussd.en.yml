@@ -24,24 +24,6 @@ en:
     send_token_amount: |
       CON Enter Amount
       0. Back
-    send_token_reason: |
-      CON Transfer Reason
-      %{options}
-      9. Show more
-    send_token_reason_other:
-      first: |
-        CON Please specify
-        %{other_options}
-        9. Show more
-      middle: |
-        CON Please specify 
-        %{other_options}
-        9. Show more
-        10. Show previous
-      last: |
-        CON Please specify
-        %{other_options}
-        10. Show previous
     send_token_pin_authorization:
       first: |
         CON %{other_user_details} will receive %{transaction_amount} %{token_name} from %{user_details}.
@@ -50,11 +32,6 @@ en:
       retry: |
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    send_token_confirmation: |
-      CON Send %{transaction_amount} %{token_name} to %{recipient_phone} for %{transaction_reason}
-      1. Confirm
-      2. Cancel
-      0. Back
     directory_listing: |
       CON Market Category
       %{options}
@@ -192,12 +169,6 @@ en:
       1. Check Exchange Rate
       2. Exchange
       0. Back
-    exchange_rate_pin_authorization:
-      first: CON Please enter your PIN.
-        0. Back
-      retry:
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
-        0. Back
     request_exchange_rate: END We are processing your request for your exchange rate. You will receive an SMS shortly.
     exchange_token_agent_number_entry: |
       CON Enter Agent Phone Number
@@ -206,9 +177,10 @@ en:
       CON Enter Amount (40 or more)
       0. Back
     exchange_token_pin_authorization:
-      first: CON Please enter your PIN.
+      first: |
+        CON Please enter your PIN.
         0. Back
-      retry:
+      retry: |
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
     exchange_token_confirmation: |
@@ -229,10 +201,10 @@ en:
     exit_invalid_token_agent: END Agent phone number is incorrect
     exit_account_creation_prompt: END Your account is being created. You will receive an SMS when your account is ready.
     exit_successful_send_token: |
-      END Your request has been sent. %{other_user_details} will receive %{transaction_amount} %{token_name} from%{user_details}. You will receive an SMS shortly.
+      END Your request has been sent. %{other_user_details} will receive %{transaction_amount} %{token_name} from %{user_details}. You will receive an SMS shortly.
     exit_not_registered: |
-      END Kusajili tuma: jina, nambari ya simu, eneo na biashara yako kwa 0757628885
-      To register send: name, number, location and business to 0757628885
+      END Haujasajiliwa kwa Sarafu. Kusajili tuma: jina, nambari ya simu, eneo na biashara yako kwa 0757628885.
+      Your are not registered for Sarafu. To register send: name, number, location and business to 0757628885.
     exit_invalid_exchange_amount: END The amount entered is insufficient. Please provide an amount of 40 or more.
     language_change_sms: Your preferred language has been changed successfully.
     opt_out_of_market_place_sms: You have successfully opted out of the marketplace.

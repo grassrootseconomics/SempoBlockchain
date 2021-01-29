@@ -350,6 +350,18 @@ class TokenProcessor(object):
                 limit_period=e.limit_time_period_days
             )
 
+        except InsufficientBalanceError as e:
+            token_balances_dollars, token_exchanges = TokenProcessor._get_token_balances(sender)
+
+            TokenProcessor.send_sms(
+                sender,
+                "insufficient_balance_sms",
+                amount=cents_to_dollars(amount),
+                token_name=default_token(sender).name,
+                recipient=agent.user_details(),
+                token_balances=token_balances_dollars
+            )
+
     @staticmethod
     def _get_token_balances(user: User):
         def get_token_info(transfer_account: TransferAccount):
