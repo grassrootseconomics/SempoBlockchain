@@ -3,7 +3,7 @@ boto3==1.7.33
 cryptography==2.3
 celery==4.2.1
 eventlet==0.24.1
-flower==0.9.3
+flower==1.2.0
 idna==2.6
 py-evm==0.3.0a5
 raven==6.9.0
